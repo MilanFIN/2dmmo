@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>MMO RPG</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+
+
+    var controlSocket = new WebSocket("ws://localhost:8888/controls");
+    var allChatMessages = [];
+    var prevInfo = ""
+
+    controlSocket.onmessage = function (evt) {
+        var data = JSON.parse(evt.data);
+
+
+        if (data.hasOwnProperty("alert")) {
+            alert(data.alert);
+        }
+        else {
+
+            document.getElementById('map').innerHTML = "<br>";
+
+            for (var i = 0; i < data.map.length; i++) {
+                mapArea = data.map[i].join("");
+                mapArea = mapArea.replace(/\./g,'&nbsp;')
+                document.getElementById('map').innerHTML += mapArea + "<br>";
+            }
+            //TÄSSÄ PITÄÄ POPULOIDA JOKU LISTA MESSAGEITA JOSTA POISTETAAN JOS TARVII
+            if (data.messages.length != 0) {
+                document.getElementById("chatMessages").innerHTML = "";
+                var list = document.getElementById("chatMessages")
+                for (var i = 0; i < data.messages.length; i++) {
+
+                    if (allChatMessages.length >= 5) {
+                        allChatMessages.shift();
+                    };
+                    allChatMessages.push(data.messages[i])
+
+                }
+                for (var i = 0; i < allChatMessages.length; i++) {
+                    // Create the list item:
+                    var item = document.createElement("LI");                 // Create a <li> node
+                    var text = document.createTextNode(allChatMessages[i]);         // Create a text node
+                    item.appendChild(text);                              // Append the text to <li>
+                    document.getElementById("chatMessages").appendChild(item);     //
+                };
+
+            };
+
+            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory)
+            if (infoData != prevInfo) {
+                //add new span to update static info, and another for buttons only updated once per change
+                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory)
+                document.getElementById("info").innerHTML = "shop/bank info goes here"
+                if (data.infoType == "shop"){
+                    document.getElementById("info").innerHTML = "Item: sellvalue <br>"
+
+                    for (var item in data.sellInfo) {
+                        if (data.sellInfo.hasOwnProperty(item)) {
+                            var button = "<button type='button' onclick=sellItem('"+item+"');>sell</button>";
+                            document.getElementById("info").innerHTML += item + ": " + data.sellInfo[item] + button +"<br>";
+
+                        }
+                    }
+                    document.getElementById("info").innerHTML += "Item: buyvalue <br>"
+                    for (var item in data.buyInfo) {
+                        if (data.buyInfo.hasOwnProperty(item)) {
+                            var button = "<button type='button' onclick=buyItem('"+item+"');>Buy</button>";
+                            document.getElementById("info").innerHTML += item + ": " + data.buyInfo[item] + button +"<br>";
+
+                        }
+                    }
+                }
+
+                if (data.infoType == "bank"){
+                    document.getElementById("info").innerHTML = "Bank balance: " + data.bankBalance + "<br>";
+                    var button0 = "<button type='button' onclick=deposit();>deposit</button>";
+                    var button1 = "<button type='button' onclick=withDraw();>withdraw</button>";
+
+                    document.getElementById("info").innerHTML += button0 + " " + button1 +"<br>";
+                }
+            }
+
+
+
+            //console.log(JSON.stringify(data.inventory));
+            document.getElementById("inventory").innerHTML = JSON.stringify(data.inventory);
+        }
+    };
+
+    function deposit() {
+        var jiison = { action: "changeBalance", "amount": 1};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+
+    function withDraw() {
+        var jiison = { action: "changeBalance", "amount": -1};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+    function buyItem(itemName) {
+        var jiison = { action: "buyItem", "item": itemName};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+
+    function sellItem(itemName) {
+        var jiison = { action: "sellItem", "item": itemName};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+
+
+    function register() {
+        var playerName =  document.getElementById("playerName").value;
+        //console.log(playerName);
+        if (playerName != "" && playerName != " ") {
+            var jiison = { action: "register", name: playerName};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        } else {
+            alert("name cannot be empty")
+        };
+
+    };
+    function moveRight() {
+        var jiison = { action: "moveRight"};//'{"move":"right"}';
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+    function moveLeft() {
+        var jiison = { action: "moveLeft"};//'{"move":"right"}';
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+    function moveUp() {
+        var jiison = { action: "moveUp"};//'{"move":"right"}';
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+    function moveDown() {
+        var jiison = { action: "moveDown"};//'{"move":"right"}';
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+    function sendMessage() {
+        var message =  document.getElementById("message").value;
+        if (message != "") {
+            var jiison = { action: "newMessage", msg: message};
+            var payload = JSON.stringify(jiison);
+            //console.log(payload);
+            controlSocket.send(payload);
+            document.getElementById("message").value = "";
+        };
+    };
+    function doAction() {
+        var jiison = { action: "doAction"};//'{"move":"right"}';
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    };
+
+
+
+    window.addEventListener('keydown', function (e) {
+        if (e.keyCode == 39) {
+            moveRight();
+        };
+        if (e.keyCode == 37) {
+            moveLeft();
+        };
+        if (e.keyCode == 38) {
+            moveUp();
+        }
+        if (e.keyCode == 40) {
+            moveDown();
+        }
+        if (e.keyCode == 65) {
+            doAction();
+        }
+    });
+
+    </script>
+</head>
+
+<body>
+
+
+
+    <div id="map" class="map">
+        <input id="playerName" type="text" name="playerName" placeholder="Player name">
+        <button onclick="register()">Register</button>
+
+        map goes here when aquired</div>
+
+    <div id="chat" class="chat">chat: <br>
+        <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
+        <button onclick="sendMessage()">Send</button>
+
+        <ul id="chatMessages" style="list-style-type:none;">
+            <li>temp</li>
+        </ul>
+    </div>
+    <div id="inventory" class="inventory">
+
+    </div>
+
+    <div id="info" class="info">
+        <div id="dynamicInfo" class="info"></div>
+        <br>
+        <div id="staticInfo" class="info"></div>
+
+    </div>
+
+</body>
+</html>
