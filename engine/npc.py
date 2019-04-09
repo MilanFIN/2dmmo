@@ -11,7 +11,8 @@ class Npc:
 
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
-        self.unAllowedTerrain = self.config["npc"]["unallowedTerrain"]
+        self.allowedTerrain = self.config["npc"]["allowedTerrain"]
+        self.roamRadius = int(self.config["npc"]["moveRadius"])
 
 
         self.character = self.config["npc"]["character"]
@@ -25,17 +26,10 @@ class Npc:
         #will be used to figure out if it has to move again
         self.originX_ = x
         self.originY_ = y
-        self.roamRadius = 3
         self.directions = [0, 1, 2, 3] # left, right, up, down
-        self.exists = True
+        self.canMove = True
     def getCharacter(self):
         return self.character
-    def doesExist(self):
-        return self.exists
-    def makeNotExist(self):
-        self.exists = False
-    def makeExist(self):
-        self.exists = True
     def getName(self):
         return self.name_
     def getWorldX(self):
@@ -46,7 +40,21 @@ class Npc:
         return self.x_
     def getY(self):
         return self.y_
+    def setMovable(self):
+        self.canMove = True
+
+    def disableMovingIfNearby(self, x, y):
+
+        #disable moving, if x and y are around the npc
+        for i in range(x-1, x+2):
+            for j in range(y-1, y+2):
+                if (abs(x-self.x_) <= 1 and abs(y-self.y_) <= 1):
+
+                    self.canMove = False
+                    return
     def move(self, area):
+        if (not self.canMove):
+            return
         shuffle(self.directions)
         for newDirection in self.directions:
             newX = 0
@@ -65,15 +73,56 @@ class Npc:
                 newY = self.y_ + 1
             if (abs(newX  - self.originX_) > self.roamRadius or abs(newY  - self.originY_) > self.roamRadius):
                 continue
-            newLocation = area[newY][newX]
-            if (newLocation in self.unAllowedTerrain):
+            if (newX < 0 or newY < 0 or newX > self.worldSize_ -1 or newY > self.worldSize_ -1):
                 continue
+            newLocation = area[newY][newX]
+            if (newLocation not in self.allowedTerrain):
+                continue
+
             self.x_ = newX
             self.y_ = newY
             break
         #roam randomly but not outside of the playable area.
         #mayble also don't go into water
         #at first only move around the spawn point
+
+
+class Monster(Npc):
+    def __init__(self, name, worldx, worldy, x, y, worldSize):
+        self.config = configparser.ConfigParser()
+        self.config.read("./engine/config.cfg")
+        self.allowedTerrain = self.config["monster"]["allowedTerrain"]
+
+
+        self.character = self.config["monster"]["character"]
+        self.roamRadius = int(self.config["monster"]["moveRadius"])
+        self.hp = int(self.config["monster"]["hp"])
+        self.attack = int(self.config["monster"]["attack"])
+        self.type = "pirate"
+
+        self.name_ = name
+        self.worldx_ = worldx
+        self.worldy_ = worldy
+        self.x_ = x
+        self.y_ = y
+        self.worldSize_ = worldSize
+        self.lastMove = 0 # put the time the npc moved here,
+        #will be used to figure out if it has to move again
+        self.originX_ = x
+        self.originY_ = y
+        self.directions = [0, 1, 2, 3] # left, right, up, down
+        self.canMove = True
+    def getType(self):
+        return self.type
+    def alive(self):
+        if (self.hp <= 0):
+            return False
+        else:
+            return True
+    def hit(self, amount):
+        self.hp -= amount
+    def getAttack(self):
+        return self.attack
 
 
 """

@@ -28,7 +28,7 @@ class Tree(GameObject):
     def hit(self):
         if (self.hp > 0):
             self.hp -= 1
-    def isAlive(self):
+    def alive(self):
         if (self.hp > 0):
             return True
         else:

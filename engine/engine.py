@@ -4,7 +4,7 @@
 from time import sleep
 import copy
 
-from engine.npc import Npc
+from engine.npc import *
 from engine.gameObjects import *
 from engine.inventory import Inventory, playerBank
 
@@ -24,9 +24,12 @@ import configparser
 TODO:
 
 
-#make shops and banks spawn alternatively
-#make npcs not move when players around, start fight with a, and attack by clicking
-    -make sea-based npcs, that work kinda same, but fights with ships
+
+-monsters attack every time they are hit, maybe around the player and on top?
+-players work the same on pvp areas
+-make land based monsters and sea based npcs
+
+
 #default sea fight mode is swimming, low hp etch.
     -best loot from pirates, much harder than on land, but easier with a ship
 #create ships that have limited hp, used to fight sea-based npcs?
@@ -185,6 +188,7 @@ class Player:
         self.ground = self.config["terrain"]["ground"]
         self.sea = self.config["terrain"]["sea"]
         self.actionDelay = int(self.config["player"]["actionDelay"])
+        self.attack = int(self.config["player"]["attack"])
         startingGold = int(self.config["player"]["money"])
 
         self.name_ = name
@@ -219,6 +223,8 @@ class Player:
         return self.x_
     def getY(self):
         return self.y_
+    def getAttack(self):
+        return self.attack
     def getNeighbors(self):
         return self.neightbors_
     def addMessage(self, playerName, message):
@@ -376,7 +382,7 @@ class Player:
             return True
             #set npcs visible in the mapsquare
 
-    def printLocation(self, allPlayers, npcs, cache, trees, shops, banks, harbors):
+    def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, harbors):
 
         """bad name for the function, but this returns the whole map with they player in it"""
         areaToPrint = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
@@ -473,6 +479,14 @@ class Player:
                         areaToPrint[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
 
 
+        #monsters
+        for y in range(-1, 2):
+            for x in range(-1, 2):
+                if ((self.worldX_ + x, self.worldY_ + y) in monsters):
+                    for monster in monsters[(self.worldX_ + x, self.worldY_ + y)]:
+                        #print(tree.getX(), tree.getY(), tree.getCharacter())
+                        areaToPrint[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
+
         """
         if ((self.worldX_, self.worldY_) in trees):
             for tree in trees[(self.worldX_, self.worldY_)]:
@@ -536,7 +550,6 @@ class Game:
         self.sea = self.config["terrain"]["sea"]
 
         self.allPlayers_ = {} #use as playername: Player()
-        self.Npcs = {}
         self.squareSize_ = 20
         self.seed = 1254122
 
@@ -547,6 +560,8 @@ class Game:
         self.banks = {} #use as [(x, y): list of banks, only one per island atm
         self.harbors = {} #use as [(x, y): list of harbors, only one per island
 
+        self.Npcs = {}
+        self.monsters = {}
 
     def getSize(self):
         return 3* self.squareSize_
@@ -737,10 +752,23 @@ class Game:
         location = possibleLocations[npcSeed]#random.choice(possibleLocations)
         self.Npcs[square] =  [Npc("asd", square[0], square[1], location[0], location[1], 20)]
 
+    def generateMonster(self, square):
+        possibleLocations = []
+        baseLayer = self.squareCache[square]
+
+        for i in range(len(baseLayer)):
+            for j in range(len(baseLayer[i])):
+                possibleLocations.append((j,i))
+        """spawn npc to pseudorandom location"""
+        xseed = self.seed + square[0] % 1000001
+        yseed = self.seed - square[1] % 1000003
+        npcSeed = (xseed + yseed) % len(possibleLocations)
+
+        location = possibleLocations[npcSeed]#random.choice(possibleLocations)
+        self.monsters[square] =  [Monster("asd", square[0], square[1], location[0], location[1], 20)]
+
 
     def updateSquareCache(self):
-
-
 
         #remove unhabitated squares
         locations = [] #list of worldcoord pairs
@@ -808,6 +836,11 @@ class Game:
                 newNpcs[npc] = self.Npcs[npc]
         self.Npcs = newNpcs
 
+        newMonsters = {}
+        for monster in self.monsters:
+            if (monster in locations):
+                newMonsters[monster] = self.monsters[monster]
+        self.monsters = newMonsters
 
 
         """update trees here"""
@@ -854,6 +887,47 @@ class Game:
                     self.generateNpc(square)
 
 
+
+        for square in self.squareCache:
+            if (square not in self.monsters):
+                if (not any(self.ground in sublist for sublist in self.squareCache[square])):
+                    xseed = self.seed + square[0] % 1000001
+                    yseed = self.seed - square[1] % 1000003
+                    objectSeed = (xseed + yseed) % 2
+                    if (objectSeed == 0):
+                        self.generateMonster(square)
+
+
+        for npcs in self.Npcs.values():
+            for npc in npcs:
+                npc.setMovable()
+
+        for player in self.allPlayers_.values():
+            worldX = player.getWorldX()
+            worldY = player.getWorldY()
+            if ((worldX, worldY) in self.Npcs):
+                x = player.getX()
+                y = player.getY()
+                for npc in self.Npcs[(worldX, worldY)]:
+                    npc.disableMovingIfNearby(x, y)
+
+
+
+        for monsters in self.monsters.values():
+            for monster in monsters:
+                monster.setMovable()
+
+
+        for player in self.allPlayers_.values():
+            worldX = player.getWorldX()
+            worldY = player.getWorldY()
+            if ((worldX, worldY) in self.monsters):
+                x = player.getX()
+                y = player.getY()
+                for monster in self.monsters[(worldX, worldY)]:
+                    monster.disableMovingIfNearby(x, y)
+
+
         """move npcs"""
         for i in (self.Npcs):
             if (i in self.squareCache):
@@ -861,11 +935,15 @@ class Game:
                     npc.move(self.squareCache[i])
 
 
+        for i in (self.monsters):
+            if (i in self.squareCache):
+                for monster in self.monsters[i]:
+                    monster.move(self.squareCache[i])
 
 
     def printGameState(self, playerName): #again bad name, just returns stuff
+        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.harbors)
 
-        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.squareCache, self.trees, self.shops, self.banks, self.harbors)
     def getActionStatus(self, playerName):
         player = self.allPlayers_[playerName]
         if (player.isInBank()):
@@ -949,6 +1027,21 @@ class Game:
                         player.addMessage("Game", "You enter a shop.")
                     return
 
+        #handle monsters
+
+        if ((x, y) in self.monsters):
+            for monster in self.monsters[(x, y)]:
+                if (monster.getX() == player.getX() and monster.getY() == player.getY()):
+                    player.act()
+                    monster.hit(player.getAttack())
+                    if (not monster.alive()):
+                        player.addMessage("Game", "You hit the " + monster.getType() + " and it died.")
+                        #player.addItemToInv(tree.getDrops())
+                        self.monsters[(x, y)].remove(monster)
+                    else:
+                        player.addMessage("Game", "You hit a " + monster.getType())
+                    return
+
 
         #handle trees
         if ((x, y) in self.trees):
@@ -956,7 +1049,7 @@ class Game:
                 if (tree.getX() == player.getX() and tree.getY() == player.getY()):
                     player.act()
                     tree.hit()
-                    if (not tree.isAlive()):
+                    if (not tree.alive()):
                         player.addMessage("Game", "You hit a tree and cut it down.")
                         player.addItemToInv(tree.getDrops())
                         self.trees[(x, y)].remove(tree)
