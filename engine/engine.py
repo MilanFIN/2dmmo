@@ -24,7 +24,7 @@ import configparser
 TODO:
 
 
-#fix port locations, make shops and banks spawn alternatively
+#make shops and banks spawn alternatively
 #make npcs not move when players around, start fight with a, and attack by clicking
     -make sea-based npcs, that work kinda same, but fights with ships
 #default sea fight mode is swimming, low hp etch.
@@ -533,6 +533,7 @@ class Game:
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
         self.ground = self.config["terrain"]["ground"]
+        self.sea = self.config["terrain"]["sea"]
 
         self.allPlayers_ = {} #use as playername: Player()
         self.Npcs = {}
@@ -635,6 +636,22 @@ class Game:
                         else:
                             newList = [newTree]
                             self.trees[square] = newList
+    def checkSurroundingTileCount(self, tileSet, tileType, x, y):
+        #check number of tiles of tileType near x,y in tileset
+        value = 0
+        if (x - 1 >= 0):
+            if (tileSet[y][x -1] == tileType):
+                value += 1
+        if (x + 1 < self.squareSize_):
+            if (tileSet[y][x + 1] == tileType):
+                value += 1
+        if (y - 1 >= 0):
+            if (tileSet[y - 1][x] == tileType):
+                value += 1
+        if (y + 1 < self.squareSize_):
+            if (tileSet[y + 1][x] == tileType):
+                value += 1
+        return value
 
     def generateShop(self, square):
         baseLayer = self.squareCache[square]
@@ -642,7 +659,12 @@ class Game:
         for y in range(len(baseLayer)):
             for x in range(len(baseLayer[y])):
                 if (baseLayer[y][x] == self.ground):
-                    groundTiles.append((x, y))
+                    if (self.checkSurroundingTileCount(baseLayer, self.ground, x, y) >= 3):
+                        groundTiles.append((x, y))
+
+        if (len(groundTiles) == 0): #no available spots
+            return
+
 
         chunkSeed = self.seed
         if (square[0] != 0):
@@ -650,7 +672,7 @@ class Game:
         if (square[1] != 0):
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
-        tileNumber = chunkSeed % 170539 % len(groundTiles)
+        tileNumber = chunkSeed % 170767 % len(groundTiles)
 
         self.shops[square] = [Shop(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
 
@@ -660,8 +682,12 @@ class Game:
         for y in range(len(baseLayer)):
             for x in range(len(baseLayer[y])):
                 if (baseLayer[y][x] == self.ground):
-                    self.banks[square] = [GameBank(x, y)]
-                    groundTiles.append((x, y))
+                    if (self.checkSurroundingTileCount(baseLayer, self.ground, x, y) >= 3):
+                        groundTiles.append((x, y))
+
+        if (len(groundTiles) == 0): #no available spots
+            return
+
         chunkSeed = self.seed
         if (square[0] != 0):
             chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
@@ -679,8 +705,21 @@ class Game:
         for y in range(len(baseLayer)):
             for x in range(len(baseLayer[y])):
                 if (baseLayer[y][x] == self.ground):
-                    self.harbors[square] = [Harbor(x, y)]
-                    break
+                    if (self.checkSurroundingTileCount(baseLayer, self.sea, x, y) >= 2):
+                        groundTiles.append((x, y))
+
+        if (len(groundTiles) == 0): #no available spots
+            return
+
+        chunkSeed = self.seed
+        if (square[0] != 0):
+            chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
+        if (square[1] != 0):
+            chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
+
+        tileNumber = chunkSeed % 170777 % len(groundTiles)
+        self.harbors[square] = [Harbor(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+
 
     def generateNpc(self, square):
         possibleLocations = []
@@ -777,7 +816,7 @@ class Game:
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     self.generateTrees(square)
 
-
+        """
         for square in self.squareCache:
             if (square not in self.shops):
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
@@ -787,6 +826,19 @@ class Game:
             if (square not in self.banks):
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     self.generateBank(square)
+        """
+
+        for square in self.squareCache:
+            if (square not in self.banks and square not in self.shops):
+                if (any(self.ground in sublist for sublist in self.squareCache[square])):
+                    xseed = self.seed + square[0] % 1000001
+                    yseed = self.seed - square[1] % 1000003
+                    objectSeed = (xseed + yseed) % 2
+                    if (objectSeed == 0):
+                        self.generateBank(square)
+                    else:
+                        self.generateShop(square)
+
 
 
         for square in self.squareCache:
@@ -807,6 +859,9 @@ class Game:
             if (i in self.squareCache):
                 for npc in self.Npcs[i]:
                     npc.move(self.squareCache[i])
+
+
+
 
     def printGameState(self, playerName): #again bad name, just returns stuff
 
