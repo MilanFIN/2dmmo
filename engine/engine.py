@@ -16,29 +16,24 @@ import configparser
 """
 TODO:
 
+
 -make monsters have a spawn probability (number, probability is number/sum(numbers))
 -add land based monsters
--add several types of npcs, make them talk or do stuff?
-
-#make stationary objects be stored in the same dict
-    -make getType function to define what actions do...
-    -includes trees
-    -after that the same thing for all npcs...
-    -IMPOSSIBLE?
-
-
-
-
--players work the same on pvp areas
+-add several types of npcs, make them talk or do stuff? also on sea?
+-pvp
+-ships. if none owned, the default is a raft, but better can be bought instead
+    -bought from ships sales locations, have to sell previous ship before buying
+    -adds hp when seaborne
+-shipyards, where one could setup their ship with items (cannons, plating etc)
+    -these are bought from a shop to ones inventory and transported to an island
+     with a shipyard
 
 
-#default sea fight mode is swimming, low hp etch.
-    -best loot from pirates, much harder than on land, but easier with a ship
-#create ships that have limited hp, used to fight sea-based npcs?
-#ports heal ships automatically or paid?, make hospitals(or inns) that heal player hp
 
-#allow team fighting npcs, that way groups are useful (limit npc attack to groups to be lower than to player)
-#TRADING?
+
+
+
+
 
 
 ### secondary todo:
@@ -51,31 +46,6 @@ TODO:
 #pringtgamestate shared for multiple worker threads as it's the slowest function to run by far
 
 
-#TESTING:
-#FIX OTHER PLAYER LOCATIONS WHEN HOPPING VERTICALLY (LINE 507)
-
-
-
-KIND OF DONE:
-#generate islands on some mapsquares of random size from a seed value
-    -make a square of certain size, and after that make passes on all the ground areas,
-    and expand them based on their coordinate and the seed number, set limit to recursion
-
-#generate json file of the map
-#implement for eg. flask server which sends the json to browser
-    #has to be done with sockets as otherwise there would be too many post requests
-#make map visible in bowser
-#send player inputs from browser to server
-#-update server gamestate and inform browser
-
-
-FUTURE:
--inventory system
--player communication when nearby
--enemies??
--dungeons???
--shops on islands
-    -additional content
 
 """
 
@@ -669,7 +639,7 @@ class Game:
 
                     if (not monster.alive()):
                         player.addMessage(
-                            "Game", "You hit the " + monster.getType() + " and it died.")
+                            "Game", "You hit the " + monster.getType() + " and it "+ monster.getDeathNote() + ".")
                         if (monster.dropType() == ""):
                             pass
                         elif (monster.dropType() == "gold"):
@@ -682,10 +652,10 @@ class Game:
                         player.hit(monster.getAttack())
 
                         player.addMessage(
-                            "Game", "You hit a " + monster.getType())
+                            "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
 
                         player.addMessage(
-                            "Game", "The " + monster.getType() + " hit you and did " + str(monster.getAttack()) + " damage")
+                            "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(monster.getAttack()) + " damage")
 
                     canExit = True
                     break

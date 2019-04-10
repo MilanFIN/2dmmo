@@ -110,7 +110,8 @@ class Monster(Npc):
         self.roamRadius = int(self.config[self.type]["moveRadius"])
         self.hp = int(self.config[self.type]["hp"])
         self.attack = int(self.config[self.type]["attack"])
-
+        self.attackType = self.config[self.type]["attackType"]
+        self.deathNote = self.config[self.type]["deathNote"]
 
         self.drops = ""
         self.dropValue = 0
@@ -146,6 +147,10 @@ class Monster(Npc):
 
     def getAttack(self):
         return self.attack
+    def getAttackType(self):
+        return self.attackType
+    def getDeathNote(self):
+        return self.deathNote
     def dropType(self):
         return self.drops
     def dropAmount(self):
