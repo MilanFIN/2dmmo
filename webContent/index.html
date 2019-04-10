@@ -9,7 +9,7 @@
 
     var controlSocket = new WebSocket("ws://localhost:8888/controls");
     var allChatMessages = [];
-    var prevInfo = ""
+    var prevInfo = "";
 
     controlSocket.onmessage = function (evt) {
         var data = JSON.parse(evt.data);
@@ -102,6 +102,7 @@
         controlSocket.send(payload);
     };
     function buyItem(itemName) {
+        console.log(itemName)
         var jiison = { action: "buyItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);

@@ -1,5 +1,5 @@
 import configparser
-
+import json
 
 class GameObject:
     def __init__(self, x, y):
@@ -53,11 +53,21 @@ class Shop(GameObject):
         self.config.read("./engine/config.cfg")
         self.character = self.config["shop"]["character"]
 
+
+        self.shopItems = json.loads(self.config["shop"]["items"])
+
+
         self.sellValues = {}  # use as item:value
         self.buyValues = {}
 
-        self.sellValues["log"] = int(self.config["log"]["sellPrice"])
-        self.buyValues["log"] = int(self.config["log"]["buyPrice"])
+
+        for i in self.shopItems:
+            self.sellValues[i] = int(self.config[i]["sellPrice"])
+            self.buyValues[i] = int(self.config[i]["buyPrice"])
+
+
+        #self.sellValues["log"] = int(self.config["log"]["sellPrice"])
+        #self.buyValues["log"] = int(self.config["log"]["buyPrice"])
 
         self.stock = {}
 

@@ -16,16 +16,16 @@ import configparser
 """
 TODO:
 
-
--some kind of hospitals, + character
+-make monsters have a spawn probability (number, probability is number/sum(numbers))
+-add land based monsters
+-add several types of npcs, make them talk or do stuff?
 
 #make stationary objects be stored in the same dict
     -make getType function to define what actions do...
     -includes trees
     -after that the same thing for all npcs...
+    -IMPOSSIBLE?
 
--land based enemies (no new dicts, but in the same one)
--sea based npcs (same thing)
 
 
 
@@ -374,6 +374,7 @@ class Game:
         #respawn dead players
         for player in self.allPlayers_.values():
             if (not player.alive()):
+                player.addMessage("Game", "You died an lost all your items")
                 player.respawn()
 
 
@@ -669,12 +670,13 @@ class Game:
                     if (not monster.alive()):
                         player.addMessage(
                             "Game", "You hit the " + monster.getType() + " and it died.")
-                        if (monster.dropType() == "gold"):
+                        if (monster.dropType() == ""):
+                            pass
+                        elif (monster.dropType() == "gold"):
                             player.addGold(monster.dropAmount())
                         else:
                             for i in range(monster.dropAmount()):
                                 player.addItemToInv(monster.dropType())
-                            """make them drop other stuff as well?"""
                         self.monsters[(x, y)].remove(monster)
                     else:
                         player.hit(monster.getAttack())
@@ -683,9 +685,10 @@ class Game:
                             "Game", "You hit a " + monster.getType())
 
                         player.addMessage(
-                            "Game", "The pirate hit you and did " + str(monster.getAttack()) + " damage")
+                            "Game", "The " + monster.getType() + " hit you and did " + str(monster.getAttack()) + " damage")
 
                     canExit = True
+                    break
             if (canExit):
                 return
 

@@ -1,6 +1,7 @@
 from random import shuffle
 import configparser
-
+import json
+import random
 
 class Npc:
     # define class for npcs, non violent non player characters
@@ -96,17 +97,27 @@ class Monster(Npc):
     def __init__(self, name, worldx, worldy, x, y, worldSize):
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
-        self.allowedTerrain = self.config["monster"]["allowedTerrain"]
 
-        self.character = self.config["monster"]["character"]
-        self.roamRadius = int(self.config["monster"]["moveRadius"])
-        self.hp = int(self.config["monster"]["hp"])
-        self.attack = int(self.config["monster"]["attack"])
+        possibleTypes = json.loads(self.config["monsters"]["types"])
 
-        self.drops = self.config["monster"]["itemDrop"]
-        self.dropValue = int(self.config["monster"]["dropAmount"])
+        """SHOULD THIS REMAIN RANDOM?"""
+        self.type = random.choice(possibleTypes)
+        #print(json.loads(self.config["monsters"]["types"]))
 
-        self.type = "pirate"
+        self.allowedTerrain = self.config[self.type]["allowedTerrain"]
+
+        self.character = self.config[self.type]["character"]
+        self.roamRadius = int(self.config[self.type]["moveRadius"])
+        self.hp = int(self.config[self.type]["hp"])
+        self.attack = int(self.config[self.type]["attack"])
+
+
+        self.drops = ""
+        self.dropValue = 0
+
+        if (self.config.has_option(self.type, "itemDrop")):
+            self.drops = self.config[self.type]["itemDrop"]
+            self.dropValue = int(self.config[self.type]["dropAmount"])
 
         self.name_ = name
         self.worldx_ = worldx
