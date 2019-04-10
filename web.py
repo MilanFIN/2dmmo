@@ -32,7 +32,7 @@ class Controls(tornado.websocket.WebSocketHandler):
 
         xyMap = game.printGameState(clients[self])
 
-
+        hp = game.getPlayerHp(clients[self])
 
         size = game.getSize()
 
@@ -55,7 +55,7 @@ class Controls(tornado.websocket.WebSocketHandler):
 
 
 
-        self.write_message({"map": xyMap, "size": size, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance })
+        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance })
         # self.write_message(json.dumps(xyMap))
 
 

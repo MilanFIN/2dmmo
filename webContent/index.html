@@ -85,8 +85,8 @@
 
 
 
-            //console.log(JSON.stringify(data.inventory));
-            document.getElementById("inventory").innerHTML = JSON.stringify(data.inventory);
+            document.getElementById("hp").innerHTML = "hp: " + JSON.stringify(data.hp);
+            document.getElementById("inventory").innerHTML = "inventory: "+JSON.stringify(data.inventory);
         }
     };
 
@@ -203,6 +203,10 @@
             <li>temp</li>
         </ul>
     </div>
+    <div id="hp" class="hp">
+
+    </div>
+
     <div id="inventory" class="inventory">
 
     </div>

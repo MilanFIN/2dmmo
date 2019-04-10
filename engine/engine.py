@@ -1,33 +1,35 @@
 
 
-
 from time import sleep
 import copy
 
 from engine.npc import *
 from engine.gameObjects import *
-from engine.inventory import Inventory, playerBank
-
+from engine.inventory import *
+from engine.player import *
 
 import datetime
 import random
 import configparser
 
 
-
-
-
-
-
-
 """
 TODO:
 
 
+-some kind of hospitals, + character
 
--monsters attack every time they are hit, maybe around the player and on top?
+#make stationary objects be stored in the same dict
+    -make getType function to define what actions do...
+    -includes trees
+    -after that the same thing for all npcs...
+
+-land based enemies (no new dicts, but in the same one)
+-sea based npcs (same thing)
+
+
+
 -players work the same on pvp areas
--make land based monsters and sea based npcs
 
 
 #default sea fight mode is swimming, low hp etch.
@@ -78,470 +80,9 @@ FUTURE:
 """
 
 
-class MapSquare:
-    """
-    Define individual part of the world of size x and y, shown to the player in groups of 9
-    """
-    def __init__(self, x, y, xSize, ySize, seed):
-
-        self.config = configparser.ConfigParser()
-        self.config.read("./engine/config.cfg")
-        self.sea = self.config["terrain"]["sea"]
-        self.ground = self.config["terrain"]["ground"]
-
-
-        self.seed_ = seed
-        self.x_ = x
-        self.y_ = y
-        self.xSize_ = xSize
-        self.ySize_ = ySize
-        self.mapMatrix_ = [[self.sea for y in range(self.ySize_)] for x in range(self.xSize_)]
-
-
-    #recursive function to spread the edges of an island square
-    def expandIslandEdges(self, islandEdges, chunkSeed,  depth):
-        """Takes a blocky island and spreads its edges pseudorandomly"""
-        if (depth == 5):
-            return
-
-        for locationPair in islandEdges:
-            #location pair is in form (y, x)
-            if (locationPair[0] == 0 or locationPair[0] == self.ySize_ - 1):
-                break
-            if (locationPair[1] == 0 or locationPair[1] == self.xSize_ - 1):
-                break
-            else:
-                #direction = random.randint(0,3)
-
-                tileSeed = chunkSeed * locationPair[1] + chunkSeed * locationPair[0] + chunkSeed
-                direction = tileSeed % 4
-
-                xMoveDir = 0
-                yMoveDir = 0
-                if (direction == 0):
-                    xMoveDir = -1
-                if (direction == 1):
-                    xMoveDir = 1
-                if (direction == 2):
-                    yMoveDir = -1
-                if (direction == 3):
-                    yMoveDir = 1
-                #check if the tile is already ground
-                if (self.mapMatrix_[locationPair[0] + yMoveDir][locationPair[1] + xMoveDir] == self.ground):
-                    continue #then we shouldn't continue as it wont produce any meaningful progress
-                pair = (locationPair[0] + yMoveDir, locationPair[1] + xMoveDir)
-                self.mapMatrix_[locationPair[0] + yMoveDir][locationPair[1] + xMoveDir] = self.ground
-                newMap = {}
-                newMap[pair] = self.ground
-                self.expandIslandEdges(newMap, chunkSeed, depth +1)
-    def getSquare(self):
-        """returns (and as such generates) the square this object is responsible for"""
-        chunkSeed = self.seed_
-        if (self.x_ != 0):
-            chunkSeed = chunkSeed * self.x_ + chunkSeed // self.x_
-        if (self.y_ != 0):
-            chunkSeed = chunkSeed * self.y_ + chunkSeed // self.y_
-        #print(chunkSeed)
-        chunkSeed = chunkSeed % 1000001
-        #print(chunkSeed)
-        islandExists = chunkSeed % 3
-        if (islandExists == 0):
-            islandWidth = chunkSeed % 11 // 2
-            islandHeight = chunkSeed % 13 // 2
-            islandCenterOffset = chunkSeed % 5 // 2
-            #print("size: ", islandWidth, islandHeight, islandCenterOffsetX)
-
-            #island edges
-            islandEdges = {};
-
-
-
-            for y in range(self.ySize_ // 2 - islandCenterOffset, self.ySize_ // 2 - islandCenterOffset + islandHeight):
-                for x in range(self.xSize_ // 2 - islandCenterOffset, self.xSize_ // 2 - islandCenterOffset + islandWidth):
-                    self.mapMatrix_[y][x] = self.ground
-                    #check if tile is on the edge of the island
-                    if (y == self.ySize_ // 2 - islandCenterOffset or y == self.ySize_ // 2 - islandCenterOffset + islandHeight - 1):
-                        # take note of the edges
-                        islandEdges[(y, x)] = self.ground;
-                    if (x == self.xSize_ // 2 - islandCenterOffset or x == self.xSize_ // 2 - islandCenterOffset + islandWidth -1):
-                        #take note of the edges
-                        islandEdges[(y, x)] = self.ground;
-            #print(islandEdges);
-
-
-            self.expandIslandEdges(islandEdges, chunkSeed, 0)
-
-
-        return self.mapMatrix_
-
-
-
-class Player:
-    """defines a player and the actions they can take"""
-    def __init__(self,name, worldX, worldY, x, y, seed, squareSize):
-
-
-        self.config = configparser.ConfigParser()
-        self.config.read("./engine/config.cfg")
-        self.character = self.config["player"]["character"]
-        self.others = self.config["player"]["otherPlayer"]
-        self.ground = self.config["terrain"]["ground"]
-        self.sea = self.config["terrain"]["sea"]
-        self.actionDelay = int(self.config["player"]["actionDelay"])
-        self.attack = int(self.config["player"]["attack"])
-        startingGold = int(self.config["player"]["money"])
-
-        self.name_ = name
-        self.seed_ = seed
-        self.worldX_ = worldX
-        self.worldY_ = worldY
-        self.squareSize_ = squareSize
-        self.x_ = x
-        self.y_ = y
-        self.moved_ = False #defines if player has moved on the server tick alaready
-        self.acted = 0
-
-        self.neightbors_ = []
-        self.messages_ = []
-
-        self.bank = playerBank()
-
-        self.inventory = Inventory()
-        self.inventory.addGold(startingGold)
-
-        self.inShop = False
-        self.inBank = False
-
-        self.onLand = True
-    def getName(self):
-        return self.name_
-    def getWorldX(self):
-        return self.worldX_
-    def getWorldY(self):
-        return self.worldY_
-    def getX(self):
-        return self.x_
-    def getY(self):
-        return self.y_
-    def getAttack(self):
-        return self.attack
-    def getNeighbors(self):
-        return self.neightbors_
-    def addMessage(self, playerName, message):
-        self.messages_.append(playerName + ": " + message)
-    def getMessages(self):
-        return self.messages_
-    def clearMessages(self):
-        self.messages_ = []
-    def allowMoving(self): #reset this every server tick, so player can move again
-        self.moved_ = False
-    def canAct(self):
-        if (self.acted == 0):
-            return True
-        else:
-            return False
-    def act(self):
-        self.acted = self.actionDelay
-    def regenActions(self):
-        if (self.acted != 0):
-            self.acted -= 1
-
-    def getInv(self):
-        return self.inventory
-    #remove these
-    def getInventory(self):
-        return self.inventory.getAllItems()
-    def getPhysicalInventory(self):
-        return self.inventory.getPhysicalItems()
-    def addItemToInv(self, item):
-        self.inventory.addItem(item)
-    def getGold(self):
-        return self.inventory.getGold()
-    def addGold(self, amount):
-        self.inventory.addGold(amount)
-
-    def isInShop(self):
-        return self.inShop
-    def goToShop(self):
-        self.inShop = True
-
-    def isInBank(self):
-        return self.inBank
-    def goToBank(self):
-        self.inBank = True
-
-    def getBankBalance(self):
-        return self.bank.getBalance()
-
-    def changeBankBalance(self, amount):
-        if (amount > 0 and self.inventory.getGold() >= amount):
-            self.bank.deposit(amount)
-            self.inventory.removeGold(amount)
-            return True
-        elif (amount < 0 and self.bank.canWithDraw(abs(amount)) == True):
-            self.bank.withDraw(abs(amount))
-            self.inventory.addGold(abs(amount))
-            return True
-        else:
-            return False
-
-    def useHarbor(self):
-        self.onLand = not self.onLand
-
-    def canMove(self, tile):
-        if (self.onLand and tile == self.ground):
-            return True
-        elif (not self.onLand and tile == self.sea):
-            return True
-        else:
-            return False
-        #check if player can move to the position
-
-    def moveLeft(self, square, hx = -1, hy = -1):
-
-        if (self.moved_ == True):
-            return
-
-        newX = self.x_ -1
-        if (newX < 0):
-            newX = self.squareSize_ -1
-            self.worldX_ -= 1
-        elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
-            return
-        self.x_ = newX
-        self.moved_ = True
-        self.inShop = False
-        self.inBank = False
-
-    def moveRight(self, square, hx = -1, hy = -1):
-
-        if (self.moved_ == True):
-            return
-
-        newX = self.x_ +1
-        if (newX >= self.squareSize_):
-            newX = 0
-            self.worldX_ += 1
-        elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
-            return
-        self.x_ = newX
-        self.moved_ = True
-        self.inShop = False
-        self.inBank = False
-
-    def moveDown(self, square, hx = -1, hy = -1):
-        if (self.moved_ == True):
-            return
-        newY = self.y_ + 1
-        if (newY >= self.squareSize_):
-            newY = 0
-            self.worldY_ += 1
-        elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
-            return
-        self.y_ = newY
-        self.moved_ = True
-        self.inShop = False
-        self.inBank = False
-
-    def moveUp(self, square, hx = -1, hy = -1):
-        if (self.moved_ == True):
-            return
-
-        newY = self.y_ - 1
-        if (newY < 0):
-            newY = self.squareSize_ -1
-            self.worldY_ -= 1
-        elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
-            return
-        self.y_ = newY
-        self.moved_ = True
-        self.inShop = False
-        self.inBank = False
-
-
-    def doNpcExist(self, npcs, area):
-
-        if (any(self.ground in tileRow for tileRow in area)  == False):
-            return True
-        if ((self.worldX_, self.worldY_) not in npcs.keys()):
-            #generate npcs for the level here
-            possibleLocations = []
-            for i in range(len(area)):
-                for j in range(len(area[i])):
-                    if (area[i][j] == self.ground):
-                        possibleLocations.append((j,i))
-            """spawn npc to pseudorandom location"""
-            xseed = self.seed_ + self.worldX_ % 1000001
-            yseed = self.seed_ - self.worldY_ % 1000003
-            npcSeed = (xseed + yseed) % len(possibleLocations)
-
-            location = possibleLocations[npcSeed]#random.choice(possibleLocations)
-            return Npc("asd", self.worldX_, self.worldY_, location[0], location[1], 20)
-            pass
-        else:
-            return True
-            #set npcs visible in the mapsquare
-
-    def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, harbors):
-
-        """bad name for the function, but this returns the whole map with they player in it"""
-        areaToPrint = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
-        self.neightbors_ = []
-
-
-        for thirdHeight in range(-1, 2):
-
-            zero = ""
-            if ((self.worldX_, self.worldY_ + thirdHeight) in cache):
-                zero = cache[(self.worldX_, self.worldY_ + thirdHeight)]
-            else:
-                zeroSquare = MapSquare(self.worldX_, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-                zero = zeroSquare.getSquare()
-                cache[(self.worldX_, self.worldY_ + thirdHeight)] = zero
-
-            right = ""
-            if ((self.worldX_ + 1, self.worldY_ + thirdHeight) in cache):
-                right = cache[(self.worldX_ + 1, self.worldY_ + thirdHeight)]
-            else:
-                rightSquare = MapSquare(self.worldX_ + 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-                right = rightSquare.getSquare()
-                cache[(self.worldX_ + 1, self.worldY_ + thirdHeight)] = right
-
-            left = ""
-            if ((self.worldX_ - 1, self.worldY_ + thirdHeight) in cache):
-                left = cache[(self.worldX_ - 1, self.worldY_ + thirdHeight)]
-            else:
-                leftSquare = MapSquare(self.worldX_ - 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-                left = leftSquare.getSquare()
-                cache[(self.worldX_ - 1, self.worldY_ + thirdHeight)] = left
-
-            #deprecated, generates new square every frame, above uses caching
-            #zeroSquare = MapSquare(self.worldX_, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-            #zero = zeroSquare.getSquare()
-            #rightSquare = MapSquare(self.worldX_ + 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-            #right = rightSquare.getSquare()
-            #leftSquare = MapSquare(self.worldX_ - 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-            #left = leftSquare.getSquare()
-            for y in range(self.squareSize_):
-                for x in range(self.squareSize_):
-                    areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x] = left[y][x]
-                    #print(left[y][x], end="")
-                for x in range(self.squareSize_):
-                    if (x == self.x_ and y == self.y_ and thirdHeight == 0):
-                        areaToPrint[(thirdHeight+1)  * self.squareSize_ + y][x + self.squareSize_] = zero[y][x]#"@"
-                        #print("@", end="")
-                    else:
-                        areaToPrint[(thirdHeight+1)  * self.squareSize_ + y][x + self.squareSize_] = zero[y][x]
-                        #print(zero[y][x], end="")
-                for x in range(self.squareSize_):
-                    areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x + self.squareSize_ * 2] = right[y][x]
-                    #print(right[y][x], end="")
-                #print("")
-
-        #trees
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in trees):
-                    for tree in trees[(self.worldX_ + x, self.worldY_ + y)]:
-                        #print(tree.getX(), tree.getY(), tree.getCharacter())
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
-
-        #shops
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in shops):
-                    for shop in shops[(self.worldX_ + x, self.worldY_ + y)]:
-                        #print(tree.getX(), tree.getY(), tree.getCharacter())
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + shop.getY()][x * self.squareSize_ + self.squareSize_ + shop.getX()] = shop.getCharacter()
-
-        #banks
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in banks):
-                    for bank in banks[(self.worldX_ + x, self.worldY_ + y)]:
-                        #print(tree.getX(), tree.getY(), tree.getCharacter())
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + bank.getY()][x * self.squareSize_ + self.squareSize_ + bank.getX()] = bank.getCharacter()
-
-        #harbors
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in harbors):
-                    for harbor in harbors[(self.worldX_ + x, self.worldY_ + y)]:
-                        #print(tree.getX(), tree.getY(), tree.getCharacter())
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + harbor.getY()][x * self.squareSize_ + self.squareSize_ + harbor.getX()] = harbor.getCharacter()
-
-        #npcs
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in npcs):
-                    for npc in npcs[(self.worldX_ + x, self.worldY_ + y)]:
-                        #print(tree.getX(), tree.getY(), tree.getCharacter())
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
-
-
-        #monsters
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in monsters):
-                    for monster in monsters[(self.worldX_ + x, self.worldY_ + y)]:
-                        #print(tree.getX(), tree.getY(), tree.getCharacter())
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
-
-        """
-        if ((self.worldX_, self.worldY_) in trees):
-            for tree in trees[(self.worldX_, self.worldY_)]:
-                #print(tree.getX(), tree.getY(), tree.getCharacter())
-                areaToPrint[self.squareSize_ + tree.getY()][self.squareSize_ + tree.getX()] = tree.getCharacter()
-        """
-
-
-        """
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in npcs):
-                    npc = npcs[(self.worldX_ + x, self.worldY_ + y)]
-                    areaToPrint[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
-        """
-
-        """
-        if ((self.worldX_, self.worldY_) in npcs):
-            npc = npcs[(self.worldX_, self.worldY_)]
-            areaToPrint[self.squareSize_ + npc.getY()][self.squareSize_ + npc.getX()] = npc.getCharacter()
-        """
-
-        for value in allPlayers.values():
-            worldx = value.getWorldX()
-            worldy = value.getWorldY()
-            x = value.getX()
-            y = value.getY()
-
-            if (value.getName == self.name_):
-                continue
-            if (worldx == self.worldX_ or worldx == self.worldX_+1 or worldx == self.worldX_ -1):
-                if (worldy == self.worldY_ or worldy == self.worldY_+1 or worldy == self.worldY_ -1):
-                    if (value.getName() != self.name_):
-                        xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
-                        yloc = worldy - self.worldY_ + 1
-                        """ERROR was HERE"""
-                        areaToPrint[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.others
-                        self.neightbors_.append(value.getName())
-
-
-        worldx = self.worldX_
-        worldy = self.worldY_
-        x = self.x_
-        y = self.y_
-
-
-        xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
-        yloc = self.worldY_ - worldy + 1
-        areaToPrint[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.character
-
-        return areaToPrint
-
-
 class Game:
     """Game runner object, handles players and passes their actions to the corresponding objects"""
+
     def __init__(self):
 
         self.config = configparser.ConfigParser()
@@ -549,83 +90,108 @@ class Game:
         self.ground = self.config["terrain"]["ground"]
         self.sea = self.config["terrain"]["sea"]
 
-        self.allPlayers_ = {} #use as playername: Player()
-        self.squareSize_ = 20
+        self.allPlayers_ = {}  # use as playername: Player()
+        self.squareSize_ = int(self.config["terrain"]["squareSize"])
         self.seed = 1254122
 
+        self.squareCache = {}  # use as [(x, y): 2Dlist of tiles]
 
-        self.squareCache = {} #use as [(x, y): 2Dlist of tiles]
-        self.trees = {} #use as [(x, y): list of trees
-        self.shops = {} #use as [(x, y): list of shops, only one per island atm
-        self.banks = {} #use as [(x, y): list of banks, only one per island atm
-        self.harbors = {} #use as [(x, y): list of harbors, only one per island
 
+        self.trees = {}  # use as [(x, y): list of trees
+        # use as [(x, y): list of shops, only one per island atm
+        self.shops = {}
+        # use as [(x, y): list of banks, only one per island atm
+        self.banks = {}
+        # use as [(x, y): list of harbors, only one per island
+        self.harbors = {}
+        self.hospitals = {}
         self.Npcs = {}
         self.monsters = {}
 
     def getSize(self):
-        return 3* self.squareSize_
+        return 3 * self.squareSize_
+
     def addPlayer(self, playerName):
-        player = Player(playerName, 0, 0, 10, 10, self.seed, self.squareSize_);
+        player = Player(playerName, 0, 0, 10, 10, self.seed, self.squareSize_)
         self.allPlayers_[playerName] = player
+
     def removePlayer(self, playerName):
         try:
             del self.allPlayers_[playerName]
         except KeyError:
             pass
+
     def allowMoving(self, playerName):
         self.allPlayers_[playerName].allowMoving()
         self.allPlayers_[playerName].regenActions()
+
     def addMessageToNeighbors(self, playerName, message):
         self.allPlayers_[playerName].addMessage(playerName, message)
         neighbors = self.allPlayers_[playerName].getNeighbors()
         for unit in neighbors:
             self.allPlayers_[unit].addMessage(playerName, message)
+
     def getMessages(self, playerName):
         return self.allPlayers_[playerName].getMessages()
+
     def clearMessages(self, playerName):
         self.allPlayers_[playerName].clearMessages()
+
     def movePlayerLeft(self, playerName):
         player = self.allPlayers_[playerName]
         hx = -1
         hy = -1
         if ((player.getWorldX(), player.getWorldY()) in self.harbors):
-            hx = self.harbors[(player.getWorldX(), player.getWorldY())][0].getX()
-            hy = self.harbors[(player.getWorldX(), player.getWorldY())][0].getY()
+            hx = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getX()
+            hy = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getY()
 
         if ((player.getWorldX(), player.getWorldY()) in self.squareCache):
-            player.moveLeft(self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+            player.moveLeft(
+                self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+
     def movePlayerRight(self, playerName):
         player = self.allPlayers_[playerName]
         hx = -1
         hy = -1
         if ((player.getWorldX(), player.getWorldY()) in self.harbors):
-            hx = self.harbors[(player.getWorldX(), player.getWorldY())][0].getX()
-            hy = self.harbors[(player.getWorldX(), player.getWorldY())][0].getY()
+            hx = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getX()
+            hy = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getY()
 
         if ((player.getWorldX(), player.getWorldY()) in self.squareCache):
-            player.moveRight(self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+            player.moveRight(
+                self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+
     def movePlayerUp(self, playerName):
         player = self.allPlayers_[playerName]
         hx = -1
         hy = -1
         if ((player.getWorldX(), player.getWorldY()) in self.harbors):
-            hx = self.harbors[(player.getWorldX(), player.getWorldY())][0].getX()
-            hy = self.harbors[(player.getWorldX(), player.getWorldY())][0].getY()
+            hx = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getX()
+            hy = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getY()
 
         if ((player.getWorldX(), player.getWorldY()) in self.squareCache):
-            player.moveUp(self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+            player.moveUp(
+                self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+
     def movePlayerDown(self, playerName):
         player = self.allPlayers_[playerName]
         hx = -1
         hy = -1
         if ((player.getWorldX(), player.getWorldY()) in self.harbors):
-            hx = self.harbors[(player.getWorldX(), player.getWorldY())][0].getX()
-            hy = self.harbors[(player.getWorldX(), player.getWorldY())][0].getY()
+            hx = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getX()
+            hy = self.harbors[(player.getWorldX(),
+                               player.getWorldY())][0].getY()
 
         if ((player.getWorldX(), player.getWorldY()) in self.squareCache):
-            player.moveDown(self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
-
+            player.moveDown(
+                self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
 
     def generateTrees(self, square):
         baseLayer = self.squareCache[square]
@@ -651,11 +217,12 @@ class Game:
                         else:
                             newList = [newTree]
                             self.trees[square] = newList
+
     def checkSurroundingTileCount(self, tileSet, tileType, x, y):
-        #check number of tiles of tileType near x,y in tileset
+        # check number of tiles of tileType near x,y in tileset
         value = 0
         if (x - 1 >= 0):
-            if (tileSet[y][x -1] == tileType):
+            if (tileSet[y][x - 1] == tileType):
                 value += 1
         if (x + 1 < self.squareSize_):
             if (tileSet[y][x + 1] == tileType):
@@ -668,6 +235,8 @@ class Game:
                 value += 1
         return value
 
+    """next functions generate different gameobjects"""
+
     def generateShop(self, square):
         baseLayer = self.squareCache[square]
         groundTiles = []
@@ -677,9 +246,8 @@ class Game:
                     if (self.checkSurroundingTileCount(baseLayer, self.ground, x, y) >= 3):
                         groundTiles.append((x, y))
 
-        if (len(groundTiles) == 0): #no available spots
+        if (len(groundTiles) == 0):  # no available spots
             return
-
 
         chunkSeed = self.seed
         if (square[0] != 0):
@@ -689,7 +257,8 @@ class Game:
 
         tileNumber = chunkSeed % 170767 % len(groundTiles)
 
-        self.shops[square] = [Shop(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+        self.shops[square] = [
+            Shop(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
 
     def generateBank(self, square):
         baseLayer = self.squareCache[square]
@@ -700,7 +269,7 @@ class Game:
                     if (self.checkSurroundingTileCount(baseLayer, self.ground, x, y) >= 3):
                         groundTiles.append((x, y))
 
-        if (len(groundTiles) == 0): #no available spots
+        if (len(groundTiles) == 0):  # no available spots
             return
 
         chunkSeed = self.seed
@@ -709,9 +278,35 @@ class Game:
         if (square[1] != 0):
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
-        tileNumber = chunkSeed % 170773 % len(groundTiles)
+        tileNumber = chunkSeed % 170767 % len(groundTiles)
 
-        self.banks[square] = [GameBank(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+        self.banks[square] = [
+            GameBank(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+
+
+    def generateHospital(self, square):
+        baseLayer = self.squareCache[square]
+        groundTiles = []
+        for y in range(len(baseLayer)):
+            for x in range(len(baseLayer[y])):
+                if (baseLayer[y][x] == self.ground):
+                    if (self.checkSurroundingTileCount(baseLayer, self.ground, x, y) >= 3):
+                        groundTiles.append((x, y))
+
+        if (len(groundTiles) == 0):  # no available spots
+            return
+
+        chunkSeed = self.seed
+        if (square[0] != 0):
+            chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
+        if (square[1] != 0):
+            chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
+
+        tileNumber = chunkSeed % 170767 % len(groundTiles)
+
+        self.hospitals[square] = [
+            Hospital(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+
 
 
     def generateHarbor(self, square):
@@ -723,7 +318,7 @@ class Game:
                     if (self.checkSurroundingTileCount(baseLayer, self.sea, x, y) >= 2):
                         groundTiles.append((x, y))
 
-        if (len(groundTiles) == 0): #no available spots
+        if (len(groundTiles) == 0):  # no available spots
             return
 
         chunkSeed = self.seed
@@ -732,9 +327,9 @@ class Game:
         if (square[1] != 0):
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
-        tileNumber = chunkSeed % 170777 % len(groundTiles)
-        self.harbors[square] = [Harbor(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
-
+        tileNumber = chunkSeed % 170773 % len(groundTiles)
+        self.harbors[square] = [
+            Harbor(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
 
     def generateNpc(self, square):
         possibleLocations = []
@@ -743,14 +338,16 @@ class Game:
         for i in range(len(baseLayer)):
             for j in range(len(baseLayer[i])):
                 if (baseLayer[i][j] == self.ground):
-                    possibleLocations.append((j,i))
+                    possibleLocations.append((j, i))
         """spawn npc to pseudorandom location"""
         xseed = self.seed + square[0] % 1000001
         yseed = self.seed - square[1] % 1000003
         npcSeed = (xseed + yseed) % len(possibleLocations)
 
-        location = possibleLocations[npcSeed]#random.choice(possibleLocations)
-        self.Npcs[square] =  [Npc("asd", square[0], square[1], location[0], location[1], 20)]
+        # random.choice(possibleLocations)
+        location = possibleLocations[npcSeed]
+        self.Npcs[square] = [
+            Npc("asd", square[0], square[1], location[0], location[1], self.squareSize_)]
 
     def generateMonster(self, square):
         possibleLocations = []
@@ -758,59 +355,64 @@ class Game:
 
         for i in range(len(baseLayer)):
             for j in range(len(baseLayer[i])):
-                possibleLocations.append((j,i))
+                possibleLocations.append((j, i))
         """spawn npc to pseudorandom location"""
         xseed = self.seed + square[0] % 1000001
         yseed = self.seed - square[1] % 1000003
         npcSeed = (xseed + yseed) % len(possibleLocations)
 
-        location = possibleLocations[npcSeed]#random.choice(possibleLocations)
-        self.monsters[square] =  [Monster("asd", square[0], square[1], location[0], location[1], 20)]
-
+        # random.choice(possibleLocations)
+        location = possibleLocations[npcSeed]
+        self.monsters[square] = [
+            Monster("asd", square[0], square[1], location[0], location[1], self.squareSize_)]
 
     def updateSquareCache(self):
+        """update cache of gamesquares, and remove and create gameobjects for new/old squares
+        This only removes squares, they are generated elsewhere as players access them"""
 
-        #remove unhabitated squares
-        locations = [] #list of worldcoord pairs
+
+        #respawn dead players
+        for player in self.allPlayers_.values():
+            if (not player.alive()):
+                player.respawn()
+
+
+
+        # remove unhabitated squares
+        locations = []  # list of worldcoord pairs
         for player in self.allPlayers_.values():
             x = player.getWorldX()
             y = player.getWorldY()
             if ((x, y) not in locations):
                 locations.append((x, y))
-            if ((x-1, y) not in locations):
-                locations.append((x-1, y))
-            if ((x+1, y) not in locations):
-                locations.append((x+1, y))
-            if ((x, y-1) not in locations):
-                locations.append((x, y-1))
-            if ((x-1, y-1) not in locations):
-                locations.append((x-1, y-1))
-            if ((x+1, y-1) not in locations):
-                locations.append((x+1, y-1))
-            if ((x, y+1) not in locations):
-                locations.append((x, y+1))
-            if ((x-1, y+1) not in locations):
-                locations.append((x-1, y+1))
-            if ((x+1, y+1) not in locations):
-                locations.append((x+1, y+1))
-        #print(locations)
+            if ((x - 1, y) not in locations):
+                locations.append((x - 1, y))
+            if ((x + 1, y) not in locations):
+                locations.append((x + 1, y))
+            if ((x, y - 1) not in locations):
+                locations.append((x, y - 1))
+            if ((x - 1, y - 1) not in locations):
+                locations.append((x - 1, y - 1))
+            if ((x + 1, y - 1) not in locations):
+                locations.append((x + 1, y - 1))
+            if ((x, y + 1) not in locations):
+                locations.append((x, y + 1))
+            if ((x - 1, y + 1) not in locations):
+                locations.append((x - 1, y + 1))
+            if ((x + 1, y + 1) not in locations):
+                locations.append((x + 1, y + 1))
         newCache = {}
         for square in self.squareCache:
             if (square in locations):
                 newCache[square] = self.squareCache[square]
         self.squareCache = newCache
 
-
-
-
-        #print(len(self.squareCache))
-
+        # take old gameobjects, and get rid of the ones that are no longer visible in the game area
         newTrees = {}
         for trees in self.trees:
             if (trees in locations):
                 newTrees[trees] = self.trees[trees]
         self.trees = newTrees
-        #print(len(self.trees.keys()))
 
         newShops = {}
         for shops in self.shops:
@@ -823,6 +425,12 @@ class Game:
             if (banks in locations):
                 newBanks[banks] = self.banks[banks]
         self.banks = newBanks
+
+        newHospitals = {}
+        for hosps in self.hospitals:
+            if (hosps in locations):
+                newHospitals[hosps] = self.hospitals[hosps]
+        self.hospitals = newHospitals
 
         newHarbors = {}
         for harbor in self.harbors:
@@ -842,8 +450,7 @@ class Game:
                 newMonsters[monster] = self.monsters[monster]
         self.monsters = newMonsters
 
-
-        """update trees here"""
+        # generate new gameobjects on new squarecache squares as they are blank before
         for square in self.squareCache:
             if (square not in self.trees):
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
@@ -866,12 +473,13 @@ class Game:
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     xseed = self.seed + square[0] % 1000001
                     yseed = self.seed - square[1] % 1000003
-                    objectSeed = (xseed + yseed) % 2
+                    objectSeed = (xseed + yseed) % 3
                     if (objectSeed == 0):
                         self.generateBank(square)
-                    else:
+                    elif (objectSeed == 1):
                         self.generateShop(square)
-
+                    else:
+                        self.generateHospital(square)
 
 
         for square in self.squareCache:
@@ -879,14 +487,10 @@ class Game:
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     self.generateHarbor(square)
 
-
-
         for square in self.squareCache:
             if (square not in self.Npcs):
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     self.generateNpc(square)
-
-
 
         for square in self.squareCache:
             if (square not in self.monsters):
@@ -897,7 +501,8 @@ class Game:
                     if (objectSeed == 0):
                         self.generateMonster(square)
 
-
+        # allow npcs and monsters to move, then disable movement for those that are
+        # ontop of players or next to them
         for npcs in self.Npcs.values():
             for npc in npcs:
                 npc.setMovable()
@@ -911,12 +516,9 @@ class Game:
                 for npc in self.Npcs[(worldX, worldY)]:
                     npc.disableMovingIfNearby(x, y)
 
-
-
         for monsters in self.monsters.values():
             for monster in monsters:
                 monster.setMovable()
-
 
         for player in self.allPlayers_.values():
             worldX = player.getWorldX()
@@ -927,24 +529,24 @@ class Game:
                 for monster in self.monsters[(worldX, worldY)]:
                     monster.disableMovingIfNearby(x, y)
 
-
-        """move npcs"""
+        # call move for all npcs and monsters, they know if they can and will
         for i in (self.Npcs):
             if (i in self.squareCache):
                 for npc in self.Npcs[i]:
                     npc.move(self.squareCache[i])
-
 
         for i in (self.monsters):
             if (i in self.squareCache):
                 for monster in self.monsters[i]:
                     monster.move(self.squareCache[i])
 
-
-    def printGameState(self, playerName): #again bad name, just returns stuff
-        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.harbors)
+    def printGameState(self, playerName):  # again bad name, just returns stuff
+        # get a gameview of the specified player
+        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.hospitals, self.harbors)
 
     def getActionStatus(self, playerName):
+        # get the state of info that needs to be shown to the player
+        # this means besides the chat and map
         player = self.allPlayers_[playerName]
         if (player.isInBank()):
             return "bank"
@@ -953,17 +555,24 @@ class Game:
         else:
             return "none"
 
+    def getPlayerHp(self, playerName):
+        return self.allPlayers_[playerName].getHp()
+
     def getItems(self, playerName):
+        # return the entire inventory of the player
         return self.allPlayers_[playerName].getInventory()
 
     def getBankBalance(self, playerName):
+        # return the entire bank balance of the plaeyr
         return self.allPlayers_[playerName].getBankBalance()
 
     def getShopSell(self, playerName):
+        # if player is in a shop, get all the items available in the shop and
+        # return a dict (item:price), if not in a shop, return false
         player = self.allPlayers_[playerName]
         if (player.isInShop()):
-            #return items player has and their values
-            items = player.getPhysicalInventory().keys() #remove physical for thesting
+            # return items player has and their values
+            items = player.getPhysicalInventory().keys()  # remove physical for thesting
             x = player.getWorldX()
             y = player.getWorldY()
 
@@ -976,6 +585,8 @@ class Game:
         return False
 
     def getShopBuy(self, playerName):
+        # if player is in a shop, return dict of items and sellprices of the
+        # players inventory
         player = self.allPlayers_[playerName]
         if (player.isInShop()):
             x = player.getWorldX()
@@ -987,15 +598,18 @@ class Game:
         return False
 
     def doAction(self, playerName):
+        # check if player is able to do any actions in the game and do them
+        # only 1 per call
         player = self.allPlayers_[playerName]
 
         if (player.canAct() == False):
             return
 
+        # get players square, so we can check if any of the objects are nearby
         x = player.getWorldX()
         y = player.getWorldY()
 
-        #handle harbors
+        # handle harbors
         if ((x, y) in self.harbors):
             for harbor in self.harbors[(x, y)]:
                 if (harbor.getX() == player.getX() and harbor.getY() == player.getY()):
@@ -1004,86 +618,121 @@ class Game:
                     player.addMessage("Game", "You use the harbor.")
                     return
 
+        # handle hospitals
+        if ((x, y) in self.hospitals):
+            for hospital in self.hospitals[(x, y)]:
+                if (hospital.getX() == player.getX() and hospital.getY() == player.getY()):
+                    if (not player.isInBuilding()):
+                        player.act()
+                        player.goToBuilding()
+                        player.resetHp()
+                        player.addMessage("Game", "You heal yourself to " + str(player.getHp()))
+                    return
 
-
-
-        #handle banks
+        # handle banks
         if ((x, y) in self.banks):
             for bank in self.banks[(x, y)]:
                 if (bank.getX() == player.getX() and bank.getY() == player.getY()):
-                    if (not player.isInBank()):
+                    if (not player.isInBuilding()):
                         player.act()
                         player.goToBank()
+                        player.goToBuilding()
+
                         player.addMessage("Game", "You enter a bank.")
                     return
 
-        #handle shops
+        # handle shops
         if ((x, y) in self.shops):
             for shop in self.shops[(x, y)]:
                 if (shop.getX() == player.getX() and shop.getY() == player.getY()):
-                    if (not player.isInShop()):
+                    if (not player.isInBuilding()):
                         player.act()
                         player.goToShop()
+                        player.goToBuilding()
+
                         player.addMessage("Game", "You enter a shop.")
                     return
 
-        #handle monsters
-
+        # handle monsters
         if ((x, y) in self.monsters):
+            canExit = False
             for monster in self.monsters[(x, y)]:
-                if (monster.getX() == player.getX() and monster.getY() == player.getY()):
+                locX = player.getX()
+                locY = player.getY()
+                if (abs(monster.getX() - player.getX()) <= 1 and abs(monster.getY() - player.getY()) <= 1):
                     player.act()
                     monster.hit(player.getAttack())
+
+                    """ MAKE PLAYER DIE HERE?
+                    """
+
                     if (not monster.alive()):
-                        player.addMessage("Game", "You hit the " + monster.getType() + " and it died.")
-                        #player.addItemToInv(tree.getDrops())
+                        player.addMessage(
+                            "Game", "You hit the " + monster.getType() + " and it died.")
+                        if (monster.dropType() == "gold"):
+                            player.addGold(monster.dropAmount())
+                        else:
+                            for i in range(monster.dropAmount()):
+                                player.addItemToInv(monster.dropType())
+                            """make them drop other stuff as well?"""
                         self.monsters[(x, y)].remove(monster)
                     else:
-                        player.addMessage("Game", "You hit a " + monster.getType())
-                    return
+                        player.hit(monster.getAttack())
 
+                        player.addMessage(
+                            "Game", "You hit a " + monster.getType())
 
-        #handle trees
+                        player.addMessage(
+                            "Game", "The pirate hit you and did " + str(monster.getAttack()) + " damage")
+
+                    canExit = True
+            if (canExit):
+                return
+
+        # handle trees
         if ((x, y) in self.trees):
             for tree in self.trees[(x, y)]:
                 if (tree.getX() == player.getX() and tree.getY() == player.getY()):
                     player.act()
                     tree.hit()
                     if (not tree.alive()):
-                        player.addMessage("Game", "You hit a tree and cut it down.")
-                        player.addItemToInv(tree.getDrops())
+                        player.addMessage(
+                            "Game", "You hit a tree and cut it down.")
+                        for i in range(tree.dropAmount()):
+                            player.addItemToInv(tree.dropType())
+
                         self.trees[(x, y)].remove(tree)
                     else:
                         player.addMessage("Game", "You hit a tree.")
                     return
 
     def changeBankBalance(self, playerName, amount):
+        # add or remove money from the players bank, if possible
         player = self.allPlayers_[playerName]
         if (player.isInBank()):
             x = player.getWorldX()
             y = player.getWorldY()
             bank = self.banks[(x, y)][0]
             if (bank.getX() == player.getX() and bank.getY() == player.getY()):
-                if (amount % 1 != 0): #check if whole number
+                if (amount % 1 != 0):  # check if whole number
                     return
 
                 if (amount > 0):
                     success = player.changeBankBalance(amount)
                     if (success):
-                        player.addMessage("Game", "You deposited "+str(amount)+" gold.")
+                        player.addMessage(
+                            "Game", "You deposited " + str(amount) + " gold.")
                 elif (amount < 0):
                     success = player.changeBankBalance(amount)
                     if (success):
-                        player.addMessage("Game", "You withdrew "+str(abs(amount))+" gold.")
+                        player.addMessage(
+                            "Game", "You withdrew " + str(abs(amount)) + " gold.")
                     else:
                         player.addMessage("Game", "You are too broke.")
 
-
-
-
-
-
     def buyItem(self, playerName, item):
+        # buy a item for the player and reduce the amount of money it costs from them
+        # won't do anything if the player is not in a shop or the shop doesn't carry teh item
         player = self.allPlayers_[playerName]
         if (player.isInShop()):
             x = player.getWorldX()
@@ -1096,16 +745,19 @@ class Game:
                     if (gold >= value):
                         inv = player.getInv()
                         value = shop.buyItem(item)
-                        player.addGold(-1* value)
+                        player.addGold(-1 * value)
                         player.addItemToInv(item)
 
-                        player.addMessage("Game", "You bought a "+item+" for "+str(value)+" gold.")
+                        player.addMessage(
+                            "Game", "You bought a " + item + " for " + str(value) + " gold.")
                     else:
                         player.addMessage("Game", "You are too broke.")
 
-
     def sellItem(self, playerName, item):
+        # sell an item to a shop that the player is standing on, wont do anything
+        # if the player doesnt have the item or is not in a shop
         player = self.allPlayers_[playerName]
+
         if (player.isInShop()):
             if (item in player.getPhysicalInventory().keys()):
                 x = player.getWorldX()
@@ -1117,11 +769,8 @@ class Game:
                         inv = player.getInv()
                         inv.removeItem(item)
                         inv.addGold(value)
-                        player.addMessage("Game", "You sold a "+item+" for "+str(value)+" gold.")
-
-
-
-
+                        player.addMessage(
+                            "Game", "You sold a " + item + " for " + str(value) + " gold.")
 
 
 """
