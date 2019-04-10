@@ -17,9 +17,13 @@ import configparser
 TODO:
 
 
--make monsters have a spawn probability (number, probability is number/sum(numbers))
--add land based monsters
--add several types of npcs, make them talk or do stuff? also on sea?
+
+-change trees to resources, add mining similar to npc types
+    -info messages are read from config
+    -drops also
+    -only 1 type per island, decide procedurally
+
+
 -pvp
 -ships. if none owned, the default is a raft, but better can be bought instead
     -bought from ships sales locations, have to sell previous ship before buying
@@ -28,6 +32,8 @@ TODO:
     -these are bought from a shop to ones inventory and transported to an island
      with a shipyard
 
+-limit worldsize, for ex 100 by 100 for a start?
+    -make "round"?
 
 
 
@@ -624,6 +630,16 @@ class Game:
                         player.addMessage("Game", "You enter a shop.")
                     return
 
+        #handle npcs
+        if ((x, y) in self.Npcs):
+            for npc in self.Npcs[(x, y)]:
+                if (npc.getX() == player.getX() and npc.getY() == player.getY()):
+                    player.act()
+
+                    player.addMessage(npc.getType(), npc.getLine())
+                    return
+
+
         # handle monsters
         if ((x, y) in self.monsters):
             canExit = False
@@ -655,7 +671,7 @@ class Game:
                             "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
 
                         player.addMessage(
-                            "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(monster.getAttack()) + " damage")
+                            "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(monster.getAttack()) + " damage.")
 
                     canExit = True
                     break

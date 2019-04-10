@@ -3,16 +3,15 @@ import configparser
 import json
 import random
 
-class Npc:
+class AiBase:
     # define class for npcs, non violent non player characters
     def __init__(self, name, worldx, worldy, x, y, worldSize):
 
-        self.config = configparser.ConfigParser()
-        self.config.read("./engine/config.cfg")
-        self.allowedTerrain = self.config["npc"]["allowedTerrain"]
-        self.roamRadius = int(self.config["npc"]["moveRadius"])
+        self.allowedTerrain = "."
+        self.roamRadius = 1
 
-        self.character = self.config["npc"]["character"]
+        self.character = "n"
+
         self.name_ = name
         self.worldx_ = worldx
         self.worldy_ = worldy
@@ -25,12 +24,15 @@ class Npc:
         self.originY_ = y
         self.directions = [0, 1, 2, 3]  # left, right, up, down
         self.canMove = True
+        self.type = ""
 
     def getCharacter(self):
         return self.character
 
     def getName(self):
         return self.name_
+    def getType(self):
+        return self.type
 
     def getWorldX(self):
         return self.worldx_
@@ -91,8 +93,49 @@ class Npc:
         # mayble also don't go into water
         # at first only move around the spawn point
 
+class Npc(AiBase):
+    # define class for npcs, non violent non player characters
+    def __init__(self, name, worldx, worldy, x, y, worldSize):
 
-class Monster(Npc):
+        self.config = configparser.ConfigParser()
+        self.config.read("./engine/config.cfg")
+
+
+        possibleTypes = json.loads(self.config["npcs"]["types"])
+
+        choiceList = []
+        for i in possibleTypes:
+            weight = int(self.config[i]["probabilityFactor"])
+            for j in range(weight):
+                choiceList.append(i)
+        self.type = random.choice(choiceList)
+
+
+        self.allowedTerrain = self.config[self.type]["allowedTerrain"]
+        self.roamRadius = int(self.config[self.type]["moveRadius"])
+
+        self.character = self.config[self.type]["character"]
+
+        self.lines = json.loads(self.config[self.type]["lines"])
+
+        self.name_ = name
+        self.worldx_ = worldx
+        self.worldy_ = worldy
+        self.x_ = x
+        self.y_ = y
+        self.worldSize_ = worldSize
+        self.lastMove = 0  # put the time the npc moved here,
+        # will be used to figure out if it has to move again
+        self.originX_ = x
+        self.originY_ = y
+        self.directions = [0, 1, 2, 3]  # left, right, up, down
+        self.canMove = True
+
+    def getLine(self):
+        return random.choice(self.lines)
+
+
+class Monster(AiBase):
     # define hostile npc class
     def __init__(self, name, worldx, worldy, x, y, worldSize):
         self.config = configparser.ConfigParser()
@@ -101,8 +144,12 @@ class Monster(Npc):
         possibleTypes = json.loads(self.config["monsters"]["types"])
 
         """SHOULD THIS REMAIN RANDOM?"""
-        self.type = random.choice(possibleTypes)
-        #print(json.loads(self.config["monsters"]["types"]))
+        choiceList = []
+        for i in possibleTypes:
+            weight = int(self.config[i]["probabilityFactor"])
+            for j in range(weight):
+                choiceList.append(i)
+        self.type = random.choice(choiceList)
 
         self.allowedTerrain = self.config[self.type]["allowedTerrain"]
 
@@ -133,8 +180,6 @@ class Monster(Npc):
         self.directions = [0, 1, 2, 3]  # left, right, up, down
         self.canMove = True
 
-    def getType(self):
-        return self.type
 
     def alive(self):
         if (self.hp <= 0):
