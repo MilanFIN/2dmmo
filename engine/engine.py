@@ -187,7 +187,7 @@ class Game:
                     ##yseed = self.seed - (square[1] + x) % 1000003
                     addTree = (xseed) % 5
                     if (addTree == 0):
-                        newTree = Tree(2, x, y)
+                        newTree = Resource(2, x, y, square[0], square[1], self.seed)
                         if (square in self.trees):
                             self.trees[square].append(newTree)
                         else:
@@ -686,13 +686,13 @@ class Game:
                     tree.hit()
                     if (not tree.alive()):
                         player.addMessage(
-                            "Game", "You hit a tree and cut it down.")
+                            "Game", "You " + tree.getDeathNote() + ".")
                         for i in range(tree.dropAmount()):
                             player.addItemToInv(tree.dropType())
 
                         self.trees[(x, y)].remove(tree)
                     else:
-                        player.addMessage("Game", "You hit a tree.")
+                        player.addMessage("Game", "You " + tree.getHitNote() + ".")
                     return
 
     def changeBankBalance(self, playerName, amount):

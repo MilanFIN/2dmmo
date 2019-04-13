@@ -1,5 +1,6 @@
 import configparser
 import json
+import random
 
 class GameObject:
     def __init__(self, x, y):
@@ -17,16 +18,29 @@ class GameObject:
         return self.y
 
 
-class Tree(GameObject):
-    def __init__(self, hp, x, y):
+class Resource(GameObject):
+    def __init__(self, hp, x, y, worldx, worldy, seed):
 
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
-        self.character = self.config["tree"]["character"]
-        self.hp = int(self.config["tree"]["hp"])
 
-        self.drops = self.config["tree"]["itemDrop"]
-        self.dropValue = int(self.config["tree"]["dropAmount"])
+        possibleTypes = json.loads(self.config["resources"]["types"])
+
+        xseed = seed + worldx % 1000001
+        yseed = seed - worldy % 1000003
+        objectSeed = (xseed + yseed) % len(possibleTypes)
+        self.type = possibleTypes[objectSeed]
+
+
+        self.character = self.config[self.type]["character"]
+        self.hp = int(self.config[self.type]["hp"])
+
+        self.drops = self.config[self.type]["itemDrop"]
+        self.dropValue = int(self.config[self.type]["dropAmount"])
+
+        self.deathNote = self.config[self.type]["deathNote"]
+        self.hitNote = self.config[self.type]["hitNote"]
+
 
         self.x = x
         self.y = y
@@ -45,6 +59,12 @@ class Tree(GameObject):
         return self.drops
     def dropAmount(self):
         return self.dropValue
+    def getDeathNote(self):
+        return self.deathNote
+    def getHitNote(self):
+        return self.hitNote
+
+
 
 
 class Shop(GameObject):
