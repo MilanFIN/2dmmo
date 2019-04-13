@@ -202,6 +202,11 @@ class Player:
         return self.hp
     def fight(self):
         self.inFight = self.fightTime
+    def fighting(self):
+        if (self.inFight == 0):
+            return False
+        else:
+            return True
     def hit(self, amount):
         self.hp -= amount
     def alive(self):
@@ -221,6 +226,8 @@ class Player:
         #reset hp and empty inventory
         self.hp = self.maxHp
         self.inventory = Inventory()
+    def isOnLand(self):
+        return self.onLand
     def regenActions(self):
         if (self.acted != 0):
             self.acted -= 1

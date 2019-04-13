@@ -641,23 +641,39 @@ class Game:
                 if (abs(opponent.getX() - player.getX()) <= 1 and abs(opponent.getY() - player.getY()) <= 1):
                     player.act()
 
-                    player.fight()
-                    opponent.fight()
+                    if (not player.isOnLand() and not opponent.isOnLand()):
 
-                    opponent.hit(player.getAttack())
-                    player.addMessage(
-                        "Game", "You hit " + opponent.getName() + " and did " + str(player.getAttack()) + " damage.")
-                    opponent.addMessage(
-                        "Game", player.getName() + " hit you and did " + str(player.getAttack()) + " damage.")
 
-                    if (opponent.alive()):
-                        player.hit(opponent.getCounterAttack())
+                        if (not player.fighting()):
+                            player.addMessage(
+                                "Game", "You attacked another player and can't move during the fight.")
+
+                        if (not opponent.fighting()):
+                            opponent.addMessage(
+                                "Game", "You were attacked and can't move during the fight.")
+
+                        player.fight()
+                        opponent.fight()
+
+                        opponent.hit(player.getAttack())
                         player.addMessage(
-                            "Game", opponent.getName() + " countered with " + str(opponent.getCounterAttack()) + " damage.")
+                            "Game", "You hit " + opponent.getName() + " and did " + str(player.getAttack()) + " damage.")
                         opponent.addMessage(
-                            "Game", "You countered with " + str(opponent.getCounterAttack()) + " damage.")
+                            "Game", player.getName() + " hit you and did " + str(player.getAttack()) + " damage.")
 
+                        if (opponent.alive()):
+                            player.hit(opponent.getCounterAttack())
+                            player.addMessage(
+                                "Game", opponent.getName() + " countered with " + str(opponent.getCounterAttack()) + " damage.")
+                            opponent.addMessage(
+                                "Game", "You countered with " + str(opponent.getCounterAttack()) + " damage.")
 
+                        if (not opponent.alive()):
+                            player.addMessage(
+                                "Game", opponent.getName() + " has died.")
+                    else:
+                        player.addMessage(
+                            "Game", "Can't attack an opponent on land.")
 
 
         # handle monsters
