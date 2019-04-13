@@ -122,8 +122,11 @@ class Player:
         self.sea = self.config["terrain"]["sea"]
         self.actionDelay = int(self.config["player"]["actionDelay"])
         self.attack = int(self.config["player"]["attack"])
+        self.counterAttack = int(self.config["player"]["counterAttack"])
         self.hp = int(self.config["player"]["hp"])
         self.maxHp = int(self.config["player"]["hp"])
+
+        self.fightTime = int(self.config["player"]["fightTime"]) * 5
 
         startingGold = int(self.config["player"]["money"])
 
@@ -143,6 +146,7 @@ class Player:
         self.squareSize_ = squareSize
         self.moved_ = False #defines if player has moved on the server tick alaready
         self.acted = 0
+        self.inFight = 0
 
         self.neightbors_ = []
         self.messages_ = []
@@ -172,6 +176,9 @@ class Player:
 
     def getAttack(self):
         return self.attack
+    def getCounterAttack(self):
+        return self.counterAttack
+
     def getNeighbors(self):
         #other players that are in the vicinity of the player
         #used for messaging
@@ -193,6 +200,8 @@ class Player:
         self.acted = self.actionDelay
     def getHp(self):
         return self.hp
+    def fight(self):
+        self.inFight = self.fightTime
     def hit(self, amount):
         self.hp -= amount
     def alive(self):
@@ -215,6 +224,8 @@ class Player:
     def regenActions(self):
         if (self.acted != 0):
             self.acted -= 1
+        if (self.inFight != 0):
+            self.inFight -= 1
 
     def getInv(self):
         return self.inventory
@@ -273,7 +284,7 @@ class Player:
 
     def moveLeft(self, square, hx = -1, hy = -1):
 
-        if (self.moved_ == True):
+        if (self.moved_ == True or self.inFight != 0):
             return
 
         newX = self.x_ -1
@@ -292,7 +303,7 @@ class Player:
 
     def moveRight(self, square, hx = -1, hy = -1):
 
-        if (self.moved_ == True):
+        if (self.moved_ == True or self.inFight != 0):
             return
 
         newX = self.x_ +1
@@ -309,7 +320,7 @@ class Player:
         self.inBuilding = False
 
     def moveDown(self, square, hx = -1, hy = -1):
-        if (self.moved_ == True):
+        if (self.moved_ == True or self.inFight != 0):
             return
         newY = self.y_ + 1
         if (newY >= self.squareSize_):
@@ -325,7 +336,7 @@ class Player:
         self.inBuilding = False
 
     def moveUp(self, square, hx = -1, hy = -1):
-        if (self.moved_ == True):
+        if (self.moved_ == True or self.inFight != 0):
             return
 
         newY = self.y_ - 1

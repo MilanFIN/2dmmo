@@ -18,11 +18,6 @@ TODO:
 
 
 
--change trees to resources, add mining similar to npc types
-    -info messages are read from config
-    -drops also
-    -only 1 type per island, decide procedurally
-
 
 -pvp
 -ships. if none owned, the default is a raft, but better can be bought instead
@@ -638,6 +633,31 @@ class Game:
 
                     player.addMessage(npc.getType(), npc.getLine())
                     return
+
+
+        for opp in player.getNeighbors():
+            opponent = self.allPlayers_[opp]
+            if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
+                if (abs(opponent.getX() - player.getX()) <= 1 and abs(opponent.getY() - player.getY()) <= 1):
+                    player.act()
+
+                    player.fight()
+                    opponent.fight()
+
+                    opponent.hit(player.getAttack())
+                    player.addMessage(
+                        "Game", "You hit " + opponent.getName() + " and did " + str(player.getAttack()) + " damage.")
+                    opponent.addMessage(
+                        "Game", player.getName() + " hit you and did " + str(player.getAttack()) + " damage.")
+
+                    if (opponent.alive()):
+                        player.hit(opponent.getCounterAttack())
+                        player.addMessage(
+                            "Game", opponent.getName() + " countered with " + str(opponent.getCounterAttack()) + " damage.")
+                        opponent.addMessage(
+                            "Game", "You countered with " + str(opponent.getCounterAttack()) + " damage.")
+
+
 
 
         # handle monsters
