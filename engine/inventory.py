@@ -71,6 +71,17 @@ class playerBank:
         self.gold -= abs(amount)
 
 
+class playerShip:
+    def __init__(self):
+        self.config = configparser.ConfigParser()
+        self.config.read("./engine/config.cfg")
+        self.allShips = json.loads(self.config["ships"]["types"])
+
+    def changeShip(self, shipName):
+        pass
+        #self.maxHp =
+
+
 """
 inv = Inventory()
 inv.addItem("tree")

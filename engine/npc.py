@@ -5,9 +5,10 @@ import random
 
 class AiBase:
     # define class for npcs, non violent non player characters
-    def __init__(self, name, worldx, worldy, x, y, worldSize):
+    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand):
 
         self.allowedTerrain = "."
+        self.unAllowedTerrain = "x"
         self.roamRadius = 1
 
         self.character = "n"
@@ -18,6 +19,7 @@ class AiBase:
         self.x_ = x
         self.y_ = y
         self.worldSize_ = worldSize
+        self.onLand = onLand
         self.lastMove = 0  # put the time the npc moved here,
         # will be used to figure out if it has to move again
         self.originX_ = x
@@ -95,35 +97,45 @@ class AiBase:
 
 class Npc(AiBase):
     # define class for npcs, non violent non player characters
-    def __init__(self, name, worldx, worldy, x, y, worldSize):
-
-        self.config = configparser.ConfigParser()
-        self.config.read("./engine/config.cfg")
-
-
-        possibleTypes = json.loads(self.config["npcs"]["types"])
-
-        choiceList = []
-        for i in possibleTypes:
-            weight = int(self.config[i]["probabilityFactor"])
-            for j in range(weight):
-                choiceList.append(i)
-        self.type = random.choice(choiceList)
-
-
-        self.allowedTerrain = self.config[self.type]["allowedTerrain"]
-        self.roamRadius = int(self.config[self.type]["moveRadius"])
-
-        self.character = self.config[self.type]["character"]
-
-        self.lines = json.loads(self.config[self.type]["lines"])
-
+    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand):
         self.name_ = name
         self.worldx_ = worldx
         self.worldy_ = worldy
         self.x_ = x
         self.y_ = y
         self.worldSize_ = worldSize
+        self.onLand = onLand
+
+        self.config = configparser.ConfigParser()
+        self.config.read("./engine/config.cfg")
+
+
+        possibleTypes = json.loads(self.config["npcs"]["types"])
+        choiceList = []
+        for i in possibleTypes:
+            if (self.config[i]["terrain"] == "ground" and self.onLand):
+                weight = int(self.config[i]["probabilityFactor"])
+                for j in range(weight):
+                    choiceList.append(i)
+            elif (self.config[i]["terrain"] == "sea" and self.onLand == False):
+                weight = int(self.config[i]["probabilityFactor"])
+                for j in range(weight):
+                    choiceList.append(i)
+        self.type = random.choice(choiceList)
+
+
+        self.AllowedTerrain = ""
+        if (self.onLand):
+            self.allowedTerrain = self.config["terrain"]["ground"]
+        else:
+            self.allowedTerrain = self.config["terrain"]["sea"]
+
+        self.roamRadius = int(self.config[self.type]["moveRadius"])
+
+        self.character = self.config[self.type]["character"]
+
+        self.lines = json.loads(self.config[self.type]["lines"])
+
         self.lastMove = 0  # put the time the npc moved here,
         # will be used to figure out if it has to move again
         self.originX_ = x
@@ -137,21 +149,40 @@ class Npc(AiBase):
 
 class Monster(AiBase):
     # define hostile npc class
-    def __init__(self, name, worldx, worldy, x, y, worldSize):
+    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand):
+
+        self.name_ = name
+        self.worldx_ = worldx
+        self.worldy_ = worldy
+        self.x_ = x
+        self.y_ = y
+        self.worldSize_ = worldSize
+        self.onLand = onLand
+
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
 
         possibleTypes = json.loads(self.config["monsters"]["types"])
-
         """SHOULD THIS REMAIN RANDOM?"""
         choiceList = []
         for i in possibleTypes:
-            weight = int(self.config[i]["probabilityFactor"])
-            for j in range(weight):
-                choiceList.append(i)
+            if (self.config[i]["terrain"] == "ground" and self.onLand):
+                weight = int(self.config[i]["probabilityFactor"])
+                for j in range(weight):
+                    choiceList.append(i)
+            elif (self.config[i]["terrain"] == "sea" and self.onLand == False):
+                weight = int(self.config[i]["probabilityFactor"])
+                for j in range(weight):
+                    choiceList.append(i)
         self.type = random.choice(choiceList)
 
-        self.allowedTerrain = self.config[self.type]["allowedTerrain"]
+
+
+        self.AllowedTerrain = ""
+        if (self.onLand):
+            self.allowedTerrain = self.config["terrain"]["ground"]
+        else:
+            self.allowedTerrain = self.config["terrain"]["sea"]
 
         self.character = self.config[self.type]["character"]
         self.roamRadius = int(self.config[self.type]["moveRadius"])
@@ -167,12 +198,6 @@ class Monster(AiBase):
             self.drops = self.config[self.type]["itemDrop"]
             self.dropValue = int(self.config[self.type]["dropAmount"])
 
-        self.name_ = name
-        self.worldx_ = worldx
-        self.worldy_ = worldy
-        self.x_ = x
-        self.y_ = y
-        self.worldSize_ = worldSize
         self.lastMove = 0  # put the time the npc moved here,
         # will be used to figure out if it has to move again
         self.originX_ = x

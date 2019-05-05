@@ -16,16 +16,16 @@ import configparser
 """
 TODO:
 
+-wearing things such as ships and armor?
 
-
-
--pvp
 -ships. if none owned, the default is a raft, but better can be bought instead
     -bought from ships sales locations, have to sell previous ship before buying
     -adds hp when seaborne
 -shipyards, where one could setup their ship with items (cannons, plating etc)
     -these are bought from a shop to ones inventory and transported to an island
      with a shipyard
+
+
 
 -limit worldsize, for ex 100 by 100 for a start?
     -make "round"?
@@ -304,38 +304,59 @@ class Game:
 
     def generateNpc(self, square):
         possibleLocations = []
+        entireLayer = []
+        baseLayer = self.squareCache[square]
+
+
+        for i in range(len(baseLayer)):
+            for j in range(len(baseLayer[i])):
+                if (baseLayer[i][j] == self.ground):
+                    possibleLocations.append((j, i))
+                entireLayer.append((j, i))
+        """spawn npc to pseudorandom location"""
+        xseed = self.seed + square[0] % 1000001
+        yseed = self.seed - square[1] % 1000003
+        location = ""
+        onLand = True
+        if (len(possibleLocations) != 0):
+            npcSeed = (xseed + yseed) % len(possibleLocations)
+            location = possibleLocations[npcSeed]
+        else:
+            npcSeed = (xseed + yseed) % len(entireLayer)
+            location = entireLayer[npcSeed]
+            onLand = False
+
+        self.Npcs[square] = [
+            Npc("asd", square[0], square[1], location[0], location[1], self.squareSize_, onLand)]
+
+    def generateMonster(self, square):
+        possibleLocations = []
+        entireLayer = []
+
         baseLayer = self.squareCache[square]
 
         for i in range(len(baseLayer)):
             for j in range(len(baseLayer[i])):
                 if (baseLayer[i][j] == self.ground):
                     possibleLocations.append((j, i))
+                entireLayer.append((j, i))
+
         """spawn npc to pseudorandom location"""
         xseed = self.seed + square[0] % 1000001
         yseed = self.seed - square[1] % 1000003
-        npcSeed = (xseed + yseed) % len(possibleLocations)
+        location = ""
+        onLand = True
+        if (len(possibleLocations) != 0):
+            npcSeed = (xseed + yseed) % len(possibleLocations)
+            location = possibleLocations[npcSeed]
+        else:
+            npcSeed = (xseed + yseed) % len(entireLayer)
+            location = entireLayer[npcSeed]
+            onLand = False
 
-        # random.choice(possibleLocations)
-        location = possibleLocations[npcSeed]
-        self.Npcs[square] = [
-            Npc("asd", square[0], square[1], location[0], location[1], self.squareSize_)]
 
-    def generateMonster(self, square):
-        possibleLocations = []
-        baseLayer = self.squareCache[square]
-
-        for i in range(len(baseLayer)):
-            for j in range(len(baseLayer[i])):
-                possibleLocations.append((j, i))
-        """spawn npc to pseudorandom location"""
-        xseed = self.seed + square[0] % 1000001
-        yseed = self.seed - square[1] % 1000003
-        npcSeed = (xseed + yseed) % len(possibleLocations)
-
-        # random.choice(possibleLocations)
-        location = possibleLocations[npcSeed]
         self.monsters[square] = [
-            Monster("asd", square[0], square[1], location[0], location[1], self.squareSize_)]
+            Monster("asd", square[0], square[1], location[0], location[1], self.squareSize_, onLand)]
 
     def updateSquareCache(self):
         """update cache of gamesquares, and remove and create gameobjects for new/old squares
@@ -463,6 +484,12 @@ class Game:
             if (square not in self.Npcs):
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     self.generateNpc(square)
+                else:
+                    xseed = self.seed + square[0] % 1000007
+                    yseed = self.seed - square[1] % 1000011
+                    objectSeed = (xseed + yseed) % 3
+                    if (objectSeed == 0):
+                        self.generateNpc(square)
 
         for square in self.squareCache:
             if (square not in self.monsters):
@@ -472,6 +499,13 @@ class Game:
                     objectSeed = (xseed + yseed) % 2
                     if (objectSeed == 0):
                         self.generateMonster(square)
+                else:
+                    xseed = self.seed + square[0] % 1000001
+                    yseed = self.seed - square[1] % 1000003
+                    objectSeed = (xseed + yseed) % 3
+                    if (objectSeed == 0):
+                        self.generateMonster(square)
+                        print("thief!")
 
         # allow npcs and monsters to move, then disable movement for those that are
         # ontop of players or next to them
