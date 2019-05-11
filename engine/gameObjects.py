@@ -1,6 +1,6 @@
 import configparser
 import json
-import random
+from engine.pseudo import *
 
 class GameObject:
     def __init__(self, x, y):
@@ -26,10 +26,10 @@ class Resource(GameObject):
 
         possibleTypes = json.loads(self.config["resources"]["types"])
 
-        xseed = seed + worldx % 1000001
-        yseed = seed - worldy % 1000003
-        objectSeed = (xseed + yseed) % len(possibleTypes)
-        self.type = possibleTypes[objectSeed]
+
+        choiceNumber = pseudo.inRange(len(possibleTypes), worldx, worldy, seed)
+
+        self.type = possibleTypes[choiceNumber]
 
 
         self.character = self.config[self.type]["character"]

@@ -5,7 +5,7 @@ import copy
 from engine.npc import *
 from engine.gameObjects import *
 from engine.inventory import *
-
+from engine.pseudo import *
 
 import configparser
 
@@ -31,7 +31,7 @@ class MapSquare:
 
 
     #recursive function to spread the edges of an island square
-    def expandIslandEdges(self, islandEdges, chunkSeed,  depth):
+    def expandIslandEdges(self, islandEdges,  depth):
         """Takes a blocky island and spreads its edges pseudorandomly"""
         if (depth == 5):
             return
@@ -45,8 +45,11 @@ class MapSquare:
             else:
                 #direction = random.randint(0,3)
 
+                """
                 tileSeed = chunkSeed * locationPair[1] + chunkSeed * locationPair[0] + chunkSeed
                 direction = tileSeed % 4
+                """
+                direction = pseudo.getIslandExpansionDirection(locationPair[1], locationPair[0], self.x_ ,self.y_ ,self.seed_)
 
                 xMoveDir = 0
                 yMoveDir = 0
@@ -65,9 +68,10 @@ class MapSquare:
                 self.mapMatrix_[locationPair[0] + yMoveDir][locationPair[1] + xMoveDir] = self.ground
                 newMap = {}
                 newMap[pair] = self.ground
-                self.expandIslandEdges(newMap, chunkSeed, depth +1)
+                self.expandIslandEdges(newMap, depth +1)
     def getSquare(self):
         """returns (and as such generates) the square this object is responsible for"""
+        """
         chunkSeed = self.seed_
         if (self.x_ != 0):
             chunkSeed = chunkSeed * self.x_ + chunkSeed // self.x_
@@ -77,11 +81,16 @@ class MapSquare:
         chunkSeed = chunkSeed % 1000001
         #print(chunkSeed)
         islandExists = chunkSeed % 3
-        if (islandExists == 0):
+        """
+
+        if (pseudo.islandExists(self.x_, self.y_, self.seed_)):
+            """
             islandWidth = chunkSeed % 11 // 2
             islandHeight = chunkSeed % 13 // 2
             islandCenterOffset = chunkSeed % 5 // 2
             #print("size: ", islandWidth, islandHeight, islandCenterOffsetX)
+            """
+            islandWidth, islandHeight, islandCenterOffset = pseudo.getIslandDimensions(self.x_, self.y_, self.seed_)
 
             #island edges
             islandEdges = {};
@@ -101,7 +110,7 @@ class MapSquare:
             #print(islandEdges);
 
 
-            self.expandIslandEdges(islandEdges, chunkSeed, 0)
+            self.expandIslandEdges(islandEdges, 0)
 
 
         return self.mapMatrix_

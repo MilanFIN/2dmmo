@@ -7,6 +7,7 @@ from engine.npc import *
 from engine.gameObjects import *
 from engine.inventory import *
 from engine.player import *
+from engine.pseudo import *
 
 import datetime
 import random
@@ -15,6 +16,8 @@ import configparser
 
 """
 TODO:
+
+-make npcs and monsters spawn on different locations on the same island
 
 -wearing things such as ships and armor?
 
@@ -220,6 +223,7 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
+        """
         chunkSeed = self.seed
         if (square[0] != 0):
             chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
@@ -227,6 +231,8 @@ class Game:
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
         tileNumber = chunkSeed % 170767 % len(groundTiles)
+        """
+        tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
 
         self.shops[square] = [
             Shop(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
@@ -243,6 +249,7 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
+        """
         chunkSeed = self.seed
         if (square[0] != 0):
             chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
@@ -250,6 +257,9 @@ class Game:
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
         tileNumber = chunkSeed % 170767 % len(groundTiles)
+        """
+        tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
+
 
         self.banks[square] = [
             GameBank(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
@@ -267,6 +277,7 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
+        """
         chunkSeed = self.seed
         if (square[0] != 0):
             chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
@@ -274,6 +285,8 @@ class Game:
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
         tileNumber = chunkSeed % 170767 % len(groundTiles)
+        """
+        tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
 
         self.hospitals[square] = [
             Hospital(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
@@ -292,6 +305,7 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
+        """
         chunkSeed = self.seed
         if (square[0] != 0):
             chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
@@ -299,6 +313,9 @@ class Game:
             chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
 
         tileNumber = chunkSeed % 170773 % len(groundTiles)
+        """
+        tileNumber = pseudo.harborLocation(len(groundTiles), square[0], square[1], self.seed)
+
         self.harbors[square] = [
             Harbor(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
 
@@ -314,16 +331,29 @@ class Game:
                     possibleLocations.append((j, i))
                 entireLayer.append((j, i))
         """spawn npc to pseudorandom location"""
-        xseed = self.seed + square[0] % 1000001
-        yseed = self.seed - square[1] % 1000003
         location = ""
         onLand = True
         if (len(possibleLocations) != 0):
+            """
+            xseed = self.seed + square[0] % 1000001
+            yseed = self.seed - square[1] % 1000003
+
             npcSeed = (xseed + yseed) % len(possibleLocations)
-            location = possibleLocations[npcSeed]
+            """
+            tileNumber = pseudo.inRange(len(possibleLocations), square[0], square[1], self.seed)
+
+            location = possibleLocations[tileNumber]
         else:
+            """
+            xseed = self.seed + square[0] % 1000001
+            yseed = self.seed - square[1] % 1000003
+
             npcSeed = (xseed + yseed) % len(entireLayer)
-            location = entireLayer[npcSeed]
+            """
+            tileNumber = pseudo.inRange(len(entireLayer), square[0], square[1], self.seed)
+
+
+            location = entireLayer[tileNumber]
             onLand = False
 
         self.Npcs[square] = [
@@ -342,16 +372,20 @@ class Game:
                 entireLayer.append((j, i))
 
         """spawn npc to pseudorandom location"""
-        xseed = self.seed + square[0] % 1000001
-        yseed = self.seed - square[1] % 1000003
+        #xseed = self.seed + square[0] % 1000001
+        #yseed = self.seed - square[1] % 1000003
         location = ""
         onLand = True
         if (len(possibleLocations) != 0):
-            npcSeed = (xseed + yseed) % len(possibleLocations)
-            location = possibleLocations[npcSeed]
+            #npcSeed = (xseed + yseed) % len(possibleLocations)
+            tileNumber = pseudo.inRange(len(possibleLocations), square[0], square[1], self.seed)
+
+            location = possibleLocations[tileNumber]
         else:
-            npcSeed = (xseed + yseed) % len(entireLayer)
-            location = entireLayer[npcSeed]
+            #npcSeed = (xseed + yseed) % len(entireLayer)
+            tileNumber = pseudo.inRange(len(entireLayer), square[0], square[1], self.seed)
+
+            location = entireLayer[tileNumber]
             onLand = False
 
 
@@ -464,9 +498,11 @@ class Game:
         for square in self.squareCache:
             if (square not in self.banks and square not in self.shops):
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
-                    xseed = self.seed + square[0] % 1000001
-                    yseed = self.seed - square[1] % 1000003
-                    objectSeed = (xseed + yseed) % 3
+                    #xseed = self.seed + square[0] % 1000001
+                    #yseed = self.seed - square[1] % 1000003
+                    #objectSeed = (xseed + yseed) % 3
+                    objectSeed = pseudo.inRange(3, square[0], square[1], self.seed)
+
                     if (objectSeed == 0):
                         self.generateBank(square)
                     elif (objectSeed == 1):
@@ -485,24 +521,31 @@ class Game:
                 if (any(self.ground in sublist for sublist in self.squareCache[square])):
                     self.generateNpc(square)
                 else:
-                    xseed = self.seed + square[0] % 1000007
-                    yseed = self.seed - square[1] % 1000011
-                    objectSeed = (xseed + yseed) % 3
+
+                    #xseed = self.seed + square[0] % 1000007
+                    #yseed = self.seed - square[1] % 1000011
+                    #objectSeed = (xseed + yseed) % 3
+                    objectSeed = pseudo.npcProbability(3, square[0], square[1], self.seed)
+
                     if (objectSeed == 0):
                         self.generateNpc(square)
 
         for square in self.squareCache:
             if (square not in self.monsters):
                 if (not any(self.ground in sublist for sublist in self.squareCache[square])):
-                    xseed = self.seed + square[0] % 1000001
-                    yseed = self.seed - square[1] % 1000003
-                    objectSeed = (xseed + yseed) % 2
+                    #xseed = self.seed + square[0] % 1000001
+                    #yseed = self.seed - square[1] % 1000003
+                    #objectSeed = (xseed + yseed) % 2
+                    objectSeed = pseudo.monsterProbability(2, square[0], square[1], self.seed)
+
                     if (objectSeed == 0):
                         self.generateMonster(square)
                 else:
-                    xseed = self.seed + square[0] % 1000001
-                    yseed = self.seed - square[1] % 1000003
-                    objectSeed = (xseed + yseed) % 3
+                    #xseed = self.seed + square[0] % 1000001
+                    #yseed = self.seed - square[1] % 1000003
+                    #objectSeed = (xseed + yseed) % 3
+                    objectSeed = pseudo.monsterProbability(3, square[0], square[1], self.seed)
+
                     if (objectSeed == 0):
                         self.generateMonster(square)
                         print("thief!")
