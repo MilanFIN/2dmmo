@@ -1,4 +1,5 @@
 import copy
+import configparser
 
 
 class Inventory:
@@ -71,15 +72,46 @@ class playerBank:
         self.gold -= abs(amount)
 
 
-class playerShip:
+class playerWear:
     def __init__(self):
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
-        self.allShips = json.loads(self.config["ships"]["types"])
 
-    def changeShip(self, shipName):
-        pass
-        #self.maxHp =
+        self.armorType = ""
+        self.armorBonus = 0
+        self.attackType = ""
+        self.attackBonus = 0
+        self.shipType = ""
+        self.shipBonus = 0
+
+    def changeShip(self, shipName, bonus):
+        self.shipType = shipName
+        self.shipBonus = bonus
+    def resetShip(self):
+        self.shipType = ""
+        self.shipBonus = 0
+    def getShipDefBonus(self):
+        return self.shipBonus
+
+    def changeArmor(self, armorName, bonus):
+        self.armorType = armorName
+        self.armorBonus = bonus
+    def resetArmor(self):
+        self.armorType = ""
+        self.armorBonus = 0
+    def getArmorBonus(self):
+        return self.armorBonus
+
+    def changeAttack(self, attackName, bonus):
+        self.attackType = attackName
+        self.attackBonus = bonus
+    def resetAttack(self):
+        self.attackType = ""
+        self.attackBonus = 0
+    def getAttackBonus(self):
+        return self.attackBonus
+
+
 
 
 """

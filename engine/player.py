@@ -160,6 +160,8 @@ class Player:
         self.neightbors_ = []
         self.messages_ = []
 
+
+        self.wear = playerWear()
         self.bank = playerBank()
 
         self.inventory = Inventory()
@@ -216,8 +218,15 @@ class Player:
             return False
         else:
             return True
+
     def hit(self, amount):
+        if (not self.onLand):
+            defBonus = self.wear.getShipDefBonus()
+            if (defBonus > 0):
+                amount = amount - int(amount * defBonus)
         self.hp -= amount
+        return amount
+
     def alive(self):
         if (self.hp <= 0):
             return False

@@ -548,7 +548,6 @@ class Game:
 
                     if (objectSeed == 0):
                         self.generateMonster(square)
-                        print("thief!")
 
         # allow npcs and monsters to move, then disable movement for those that are
         # ontop of players or next to them
@@ -778,13 +777,13 @@ class Game:
                                 player.addItemToInv(monster.dropType())
                         self.monsters[(x, y)].remove(monster)
                     else:
-                        player.hit(monster.getAttack())
+                        damageTaken = player.hit(monster.getAttack())
 
                         player.addMessage(
                             "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
 
                         player.addMessage(
-                            "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(monster.getAttack()) + " damage.")
+                            "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(damageTaken) + " damage.")
 
                     canExit = True
                     break
