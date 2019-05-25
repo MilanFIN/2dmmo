@@ -1,3 +1,5 @@
+from engine.items import *
+
 import copy
 import configparser
 
@@ -46,8 +48,12 @@ class Inventory:
 
     def getAllItems(self):
         returnItems = copy.deepcopy(self.items)
+        for item in returnItems.keys():
+            
+            returnItems[item] = (returnItems[item], items.itemWearable(item))
         if (self.gold != 0):
-            returnItems["gold"] = self.gold
+            returnItems["gold"] = (self.gold, False)
+        print(returnItems)
         return returnItems
 
 

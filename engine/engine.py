@@ -12,21 +12,19 @@ from engine.pseudo import *
 import datetime
 import random
 import configparser
-
+import json
 
 """
 TODO:
 
+-wearing things such as ships and armor?
+    -ships changeable only on land
+    -ships have a reduction fraction that is taken from damage recieved
+    -make ship item type and make it wearable
+
 -make npcs and monsters spawn on different locations on the same island
 
--wearing things such as ships and armor?
 
--ships. if none owned, the default is a raft, but better can be bought instead
-    -bought from ships sales locations, have to sell previous ship before buying
-    -adds hp when seaborne
--shipyards, where one could setup their ship with items (cannons, plating etc)
-    -these are bought from a shop to ones inventory and transported to an island
-     with a shipyard
 
 
 

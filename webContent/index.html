@@ -86,7 +86,21 @@
 
 
             document.getElementById("hp").innerHTML = "hp: " + JSON.stringify(data.hp);
-            document.getElementById("inventory").innerHTML = "inventory: "+JSON.stringify(data.inventory);
+
+
+            //inventory:
+            var itemNames = Object.keys(data.inventory);
+
+            //console.log(data.inventory)
+            document.getElementById("inventory").innerHTML = "inventory: <br>";
+            for (var i = 0; i < itemNames.length; i++) {
+                document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
+                if (data.inventory[itemNames[i]][1] === true) {
+                    document.getElementById("inventory").innerHTML += "button";
+                }
+                document.getElementById("inventory").innerHTML += "<br>"
+            }
+
         }
     };
 
