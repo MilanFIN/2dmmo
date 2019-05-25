@@ -871,6 +871,10 @@ class Game:
                         player.addMessage(
                             "Game", "You sold a " + item + " for " + str(value) + " gold.")
 
+    def wearItem(self, playerName, item):
+        player = self.allPlayers_[playerName]
+        player.wearItem(item)
+
 
 """
 #testing purposes only

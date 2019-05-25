@@ -115,7 +115,10 @@ class Controls(tornado.websocket.WebSocketHandler):
                 itemToBuy = parsed_msg["item"]
                 game.buyItem(clients[self], itemToBuy)
 
-
+        if (parsed_msg["action"] == "wearItem"):
+            if (self in clients.keys()):
+                itemToWear = parsed_msg["item"]
+                game.wearItem(clients[self], itemToWear)
 
 
 

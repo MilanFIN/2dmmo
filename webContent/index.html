@@ -81,6 +81,22 @@
 
                     document.getElementById("info").innerHTML += button0 + " " + button1 +"<br>";
                 }
+
+
+                //inventory:
+                var itemNames = Object.keys(data.inventory);
+
+                //console.log(data.inventory)
+                document.getElementById("inventory").innerHTML = "inventory: <br>";
+                for (var i = 0; i < itemNames.length; i++) {
+                    document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
+                    if (data.inventory[itemNames[i]][1] === true) {
+                        var button = "<button type='button' onclick=wear('"+itemNames[i]+"');>Wear</button>";
+
+                        document.getElementById("inventory").innerHTML += button;
+                    }
+                    document.getElementById("inventory").innerHTML += "<br>"
+                }
             }
 
 
@@ -88,21 +104,17 @@
             document.getElementById("hp").innerHTML = "hp: " + JSON.stringify(data.hp);
 
 
-            //inventory:
-            var itemNames = Object.keys(data.inventory);
 
-            //console.log(data.inventory)
-            document.getElementById("inventory").innerHTML = "inventory: <br>";
-            for (var i = 0; i < itemNames.length; i++) {
-                document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
-                if (data.inventory[itemNames[i]][1] === true) {
-                    document.getElementById("inventory").innerHTML += "button";
-                }
-                document.getElementById("inventory").innerHTML += "<br>"
-            }
 
         }
     };
+
+    function wear(itemName) {
+        console.log("asd");
+        var jiison = { action: "wearItem", "item": itemName};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
 
     function deposit() {
         var jiison = { action: "changeBalance", "amount": 1};
@@ -116,7 +128,6 @@
         controlSocket.send(payload);
     };
     function buyItem(itemName) {
-        console.log(itemName)
         var jiison = { action: "buyItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);

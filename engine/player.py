@@ -6,6 +6,7 @@ from engine.npc import *
 from engine.gameObjects import *
 from engine.inventory import *
 from engine.pseudo import *
+from engine.items import *
 
 import configparser
 
@@ -297,6 +298,14 @@ class Player:
 
     def useHarbor(self):
         self.onLand = not self.onLand
+
+    def wearItem(self, item):
+        if (not items.itemWearable(item)):
+            return
+        else:
+            self.wear.changeArmor("armor", 0.5)
+            print("changed armor")
+
 
     def canMove(self, tile):
         if (self.onLand and tile == self.ground):

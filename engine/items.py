@@ -13,6 +13,8 @@ class Item:
             return True
         else:
             return False
+    def wearType(self):
+        return self.wearable
 class Items:
     def __init__(self):
         self.config = configparser.ConfigParser()
@@ -21,11 +23,15 @@ class Items:
         self.items = {}
         for i in self.itemTypes:
             self.items[i] = Item(i)
-        print(self.items)
     def itemWearable(self, itemName):
         if (itemName in self.itemTypes):
             return self.items[itemName].canWear()
         else:
             return False
+    def getWearType(self, itemName):
+        if (itemName in self.itemTypes):
+            return self.items[itemName].wearType()
+        else:
+            return "none"
 
 items = Items()
