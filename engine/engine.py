@@ -776,7 +776,7 @@ class Game:
                         self.monsters[(x, y)].remove(monster)
                     else:
                         damageTaken = player.hit(monster.getAttack())
-
+                        print(damageTaken)
                         player.addMessage(
                             "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
 

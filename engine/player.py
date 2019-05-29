@@ -222,7 +222,7 @@ class Player:
 
     def hit(self, amount):
         if (not self.onLand):
-            defBonus = self.wear.getShipDefBonus()
+            defBonus = self.wear.getShipBonus()
             if (defBonus > 0):
                 amount = amount - int(amount * defBonus)
         self.hp -= amount
@@ -303,8 +303,11 @@ class Player:
         if (not items.itemWearable(item)):
             return
         else:
-            self.wear.changeArmor("armor", 0.5)
-            print("changed armor")
+            print(self.wear.getArmorBonus())
+
+            self.wear.changeArmor(item, items.getWearBonus(item))
+            print("changed armor: ", item, items.getWearBonus(item))
+            print(self.wear.getArmorBonus())
 
 
     def canMove(self, tile):
