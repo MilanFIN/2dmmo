@@ -729,18 +729,18 @@ class Game:
                         player.fight()
                         opponent.fight()
 
-                        opponent.hit(player.getAttack())
+                        damageDone = opponent.hit(player.getAttack())
                         player.addMessage(
-                            "Game", "You hit " + opponent.getName() + " and did " + str(player.getAttack()) + " damage.")
+                            "Game", "You hit " + opponent.getName() + " and did " + damageDone + " damage.")
                         opponent.addMessage(
-                            "Game", player.getName() + " hit you and did " + str(player.getAttack()) + " damage.")
+                            "Game", player.getName() + " hit you and did " + damageDone + " damage.")
 
                         if (opponent.alive()):
-                            player.hit(opponent.getCounterAttack())
+                            damageTaken = player.hit(opponent.getCounterAttack())
                             player.addMessage(
-                                "Game", opponent.getName() + " countered with " + str(opponent.getCounterAttack()) + " damage.")
+                                "Game", opponent.getName() + " countered with " + damageTaken + " damage.")
                             opponent.addMessage(
-                                "Game", "You countered with " + str(opponent.getCounterAttack()) + " damage.")
+                                "Game", "You countered with " + damageTaken+ " damage.")
 
                         if (not opponent.alive()):
                             player.addMessage(
@@ -760,8 +760,6 @@ class Game:
                     player.act()
                     monster.hit(player.getAttack())
 
-                    """ MAKE PLAYER DIE HERE?
-                    """
 
                     if (not monster.alive()):
                         player.addMessage(
@@ -776,7 +774,6 @@ class Game:
                         self.monsters[(x, y)].remove(monster)
                     else:
                         damageTaken = player.hit(monster.getAttack())
-                        print(damageTaken)
                         player.addMessage(
                             "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
 
@@ -867,6 +864,10 @@ class Game:
                         value = shop.sellItem(item)
                         inv = player.getInv()
                         inv.removeItem(item)
+
+                        if (not inv.checkIfHasItem(item)):
+                            player.wear.removeIfWorn(item)
+
                         inv.addGold(value)
                         player.addMessage(
                             "Game", "You sold a " + item + " for " + str(value) + " gold.")
@@ -874,7 +875,12 @@ class Game:
     def wearItem(self, playerName, item):
         player = self.allPlayers_[playerName]
         player.wearItem(item)
-
+    def unWearAll(self, playerName):
+        player = self.allPlayers_[playerName]
+        player.wear.resetAll()
+    def getWear(self, playerName):
+        player = self.allPlayers_[playerName]
+        return player.wear.getWear()
 
 """
 #testing purposes only

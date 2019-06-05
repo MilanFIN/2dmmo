@@ -10,6 +10,7 @@ class Item:
         self.bonus = 0
         if (self.wearable != "none"):
             self.bonus = float(self.config[itemType]["bonus"])
+
     def getType(self):
         return self.type
     def canWear(self):
@@ -21,6 +22,7 @@ class Item:
         return self.wearable
     def getBonus(self):
         return self.bonus
+
 class Items:
     def __init__(self):
         self.config = configparser.ConfigParser()

@@ -187,7 +187,9 @@ class Player:
         return self.y_
 
     def getAttack(self):
-        return self.attack
+
+
+        return self.attack + self.wear.getAttackBonus()
     def getCounterAttack(self):
         return self.counterAttack
 
@@ -222,9 +224,14 @@ class Player:
 
     def hit(self, amount):
         if (not self.onLand):
-            defBonus = self.wear.getShipBonus()
+            defBonus = self.wear.getShipDefBonus()
             if (defBonus > 0):
                 amount = amount - int(amount * defBonus)
+        else: #on land
+            defBonus = self.wear.getArmorBonus()
+            if (defBonus > 0):
+                amount = amount - int(amount * defBonus)
+
         self.hp -= amount
         return amount
 
@@ -303,11 +310,8 @@ class Player:
         if (not items.itemWearable(item)):
             return
         else:
-            print(self.wear.getArmorBonus())
 
-            self.wear.changeArmor(item, items.getWearBonus(item))
-            print("changed armor: ", item, items.getWearBonus(item))
-            print(self.wear.getArmorBonus())
+            self.wear.changeItem(items.getWearType(item), item, items.getWearBonus(item))
 
 
     def canMove(self, tile):

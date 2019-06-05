@@ -9,6 +9,7 @@ class Inventory:
         self.items = {}  # use as item:count
         self.gold = 0
 
+
     def addGold(self, amount):
         self.gold += amount
 
@@ -55,6 +56,13 @@ class Inventory:
             returnItems["gold"] = (self.gold, False)
         return returnItems
 
+    def checkIfHasItem(self, item):
+        if (item in self.items.keys()):
+            return True
+        else:
+            return False
+
+
 
 class playerBank:
     def __init__(self):
@@ -88,6 +96,41 @@ class playerWear:
         self.attackBonus = 0
         self.shipType = ""
         self.shipBonus = 0
+
+    def getWear(self):
+        wear = [self.armorType, self.attackType, self.shipType]
+        return wear
+
+    def resetAll(self):
+        self.armorType = ""
+        self.armorBonus = 0
+        self.attackType = ""
+        self.attackBonus = 0
+        self.shipType = ""
+        self.shipBonus = 0
+
+    def removeIfWorn(self, item):
+        if (item == self.armorType):
+            self.armorType = ""
+            self.armorBonus = 0
+        elif (item == self.attackType):
+            self.attackType = ""
+            self.attackBonus = 0
+        elif (item == self.shipType):
+            self.shipType = ""
+            self.ShipBonus = 0
+
+    def changeItem(self, itemType, itemName, bonus):
+
+        if (itemType == "armor"):
+            self.armorType = itemName
+            self.armorBonus = bonus
+        if (itemType == "attack"):
+            self.attackType = itemName
+            self.attackBonus = bonus
+        if (itemType == "ship"):
+            self.shipType = itemName
+            self.shipBonus = bonus
 
     def changeShip(self, shipName, bonus):
         self.shipType = shipName
