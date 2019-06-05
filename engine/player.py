@@ -21,7 +21,9 @@ class MapSquare:
         self.config.read("./engine/config.cfg")
         self.sea = self.config["terrain"]["sea"]
         self.ground = self.config["terrain"]["ground"]
-
+        self.worldSize = int(self.config["terrain"]["worldRadius"])
+        if (self.worldSize < 3):
+            self.worldSize = 3
 
         self.seed_ = seed
         self.x_ = x
@@ -84,7 +86,10 @@ class MapSquare:
         islandExists = chunkSeed % 3
         """
 
-        if (pseudo.islandExists(self.x_, self.y_, self.seed_)):
+        if (self.x_ >= self.worldSize-1 or self.y_ >= self.worldSize-1 or self.x_ <= -self.worldSize+1 or self.y_ <= -self.worldSize+1 ):
+            return self.mapMatrix_
+
+        elif (pseudo.islandExists(self.x_, self.y_, self.seed_)):
             """
             islandWidth = chunkSeed % 11 // 2
             islandHeight = chunkSeed % 13 // 2
@@ -130,6 +135,7 @@ class Player:
         self.others = self.config["player"]["otherPlayer"]
         self.ground = self.config["terrain"]["ground"]
         self.sea = self.config["terrain"]["sea"]
+        self.worldSize = int(self.config["terrain"]["worldRadius"])
         self.actionDelay = int(self.config["player"]["actionDelay"])
         self.attack = int(self.config["player"]["attack"])
         self.counterAttack = int(self.config["player"]["counterAttack"])
@@ -332,6 +338,9 @@ class Player:
         if (newX < 0):
             newX = self.squareSize_ -1
             self.worldX_ -= 1
+            if (self.worldX_ <= -self.worldSize +1):
+                self.worldX_ = self.worldSize -1
+
         elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
             return
         self.x_ = newX
@@ -351,6 +360,9 @@ class Player:
         if (newX >= self.squareSize_):
             newX = 0
             self.worldX_ += 1
+            if (self.worldX_ >= self.worldSize -1):
+                self.worldX_ = -self.worldSize +1
+
         elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
             return
         self.x_ = newX
@@ -367,6 +379,10 @@ class Player:
         if (newY >= self.squareSize_):
             newY = 0
             self.worldY_ += 1
+
+            if (self.worldY_ >= self.worldSize -1):
+                self.worldY_ = -self.worldSize +1
+
         elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
             return
         self.y_ = newY
@@ -384,6 +400,10 @@ class Player:
         if (newY < 0):
             newY = self.squareSize_ -1
             self.worldY_ -= 1
+
+            if (self.worldY_ <= -self.worldSize +1):
+                self.worldY_ = self.worldSize -1
+
         elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
             return
         self.y_ = newY
