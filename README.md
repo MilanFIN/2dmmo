@@ -19,5 +19,6 @@ The world is "round" and populated by islands with npc characters on them.
 - multiple server support, all of which connect to a central database to sync player progress between servers
 - different types of shops, each specializing in specific item types etc
 - different types of areas such as civilized and monster populated areas, restrict specific npc and monster types to these areas
+- map that shows positions of islands and the types of the areas, possibly represented by assigning 1 pixel to 1 tile
 - islands that are larger than one gametile?
 
