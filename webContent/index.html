@@ -11,7 +11,7 @@
     var allChatMessages = [];
     var prevInfo = "";
     var lastActionTimeStamp = +new Date();
-    var actionDelay = 200; //min time between actions in milliseconds
+    var actionDelay = 50; //min time between actions in milliseconds
 
     controlSocket.onmessage = function (evt) {
         var data = JSON.parse(evt.data);
@@ -101,6 +101,7 @@
                 }
 
             }
+            document.getElementById("hp").innerHTML = "Hp: " + data.hp;
 
 
             document.getElementById("wearInfo").innerHTML = "Wearing: <br>";
@@ -122,6 +123,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "unWear"};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -133,6 +135,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "wearItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -143,6 +146,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "changeBalance", "amount": 1};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -153,6 +157,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "changeBalance", "amount": -1};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -162,6 +167,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "buyItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -172,6 +178,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "sellItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -183,6 +190,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var playerName =  document.getElementById("playerName").value;
         //console.log(playerName);
         if (playerName != "" && playerName != " ") {
@@ -199,6 +207,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "moveRight"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -208,6 +217,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "moveLeft"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -217,6 +227,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "moveUp"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -226,6 +237,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "moveDown"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -235,6 +247,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var message =  document.getElementById("message").value;
         if (message != "") {
             var jiison = { action: "newMessage", msg: message};
@@ -250,6 +263,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "attack"};;
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -260,6 +274,7 @@
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
+        lastActionTimeStamp = actionTimeStamp;
         var jiison = { action: "act"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);

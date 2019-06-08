@@ -718,6 +718,26 @@ class Game:
 
                     break;
 
+
+        # handle trees
+        if ((x, y) in self.trees):
+            for tree in self.trees[(x, y)]:
+                if (tree.getX() == player.getX() and tree.getY() == player.getY()):
+                    player.act()
+                    tree.hit()
+                    if (not tree.alive()):
+                        player.addMessage(
+                            "Game", "You " + tree.getDeathNote() + ".")
+                        for i in range(tree.dropAmount()):
+                            player.addItemToInv(tree.dropType())
+
+                        self.trees[(x, y)].remove(tree)
+                    else:
+                        player.addMessage("Game", "You " + tree.getHitNote() + ".")
+                    return
+
+
+
     def attack(self, playerName):
         # check if player is able to do any actions in the game and do them
         # only 1 per call
@@ -753,16 +773,16 @@ class Game:
 
                         damageDone = opponent.hit(player.getAttack())
                         player.addMessage(
-                            "Game", "You hit " + opponent.getName() + " and did " + damageDone + " damage.")
+                            "Game", "You hit " + opponent.getName() + " and did " + str(damageDone) + " damage.")
                         opponent.addMessage(
-                            "Game", player.getName() + " hit you and did " + damageDone + " damage.")
+                            "Game", player.getName() + " hit you and did " + str(damageDone) + " damage.")
 
                         if (opponent.alive()):
                             damageTaken = player.hit(opponent.getCounterAttack())
                             player.addMessage(
-                                "Game", opponent.getName() + " countered with " + damageTaken + " damage.")
+                                "Game", opponent.getName() + " countered with " + str(damageTaken) + " damage.")
                             opponent.addMessage(
-                                "Game", "You countered with " + damageTaken+ " damage.")
+                                "Game", "You countered with " + str(damageTaken) + " damage.")
 
                         if (not opponent.alive()):
                             player.addMessage(
@@ -806,23 +826,6 @@ class Game:
                     break
             if (canExit):
                 return
-
-        # handle trees
-        if ((x, y) in self.trees):
-            for tree in self.trees[(x, y)]:
-                if (tree.getX() == player.getX() and tree.getY() == player.getY()):
-                    player.act()
-                    tree.hit()
-                    if (not tree.alive()):
-                        player.addMessage(
-                            "Game", "You " + tree.getDeathNote() + ".")
-                        for i in range(tree.dropAmount()):
-                            player.addItemToInv(tree.dropType())
-
-                        self.trees[(x, y)].remove(tree)
-                    else:
-                        player.addMessage("Game", "You " + tree.getHitNote() + ".")
-                    return
 
     def changeBankBalance(self, playerName, amount):
         # add or remove money from the players bank, if possible
