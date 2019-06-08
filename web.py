@@ -95,9 +95,13 @@ class Controls(tornado.websocket.WebSocketHandler):
                 game.addMessageToNeighbors(clients[self], newMessage)
             except Exception:
                 pass
-        if (parsed_msg["action"] == "doAction"):
+        if (parsed_msg["action"] == "act"):
             if (self in clients.keys()):
                 game.doAction(clients[self])
+        if (parsed_msg["action"] == "attack"):
+            if (self in clients.keys()):
+                game.attack(clients[self])
+
 
 
         if (parsed_msg["action"] == "changeBalance"):

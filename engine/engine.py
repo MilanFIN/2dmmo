@@ -708,7 +708,29 @@ class Game:
                     player.addMessage(npc.getType(), npc.getLine())
                     return
 
+        #handle players
+        for opp in player.getNeighbors():
+            opponent = self.allPlayers_[opp]
+            if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
+                if (opponent.getX() == player.getX() and opponent.getY() - player.getY()):
+                    print("handle trades here, add new trade , separate functions to add, remove and accept")
 
+
+                    break;
+
+    def attack(self, playerName):
+        # check if player is able to do any actions in the game and do them
+        # only 1 per call
+        player = self.allPlayers_[playerName]
+
+        if (player.canAct() == False):
+            return
+
+        # get players square, so we can check if any of the objects are nearby
+        x = player.getWorldX()
+        y = player.getWorldY()
+
+        #handle players
         for opp in player.getNeighbors():
             opponent = self.allPlayers_[opp]
             if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):

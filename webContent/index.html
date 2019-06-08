@@ -10,6 +10,8 @@
     var controlSocket = new WebSocket("ws://localhost:8888/controls");
     var allChatMessages = [];
     var prevInfo = "";
+    var lastActionTimeStamp = +new Date();
+    var actionDelay = 200; //min time between actions in milliseconds
 
     controlSocket.onmessage = function (evt) {
         var data = JSON.parse(evt.data);
@@ -116,6 +118,10 @@
     };
 
     function unWearAll() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "unWear"};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -123,29 +129,49 @@
     };
 
     function wear(itemName) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "wearItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     }
 
     function deposit() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "changeBalance", "amount": 1};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
 
     function withDraw() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "changeBalance", "amount": -1};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
     function buyItem(itemName) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "buyItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
 
     function sellItem(itemName) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "sellItem", "item": itemName};
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
@@ -153,6 +179,10 @@
 
 
     function register() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var playerName =  document.getElementById("playerName").value;
         //console.log(playerName);
         if (playerName != "" && playerName != " ") {
@@ -165,26 +195,46 @@
 
     };
     function moveRight() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "moveRight"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
     function moveLeft() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "moveLeft"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
     function moveUp() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "moveUp"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
     function moveDown() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var jiison = { action: "moveDown"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
     function sendMessage() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
         var message =  document.getElementById("message").value;
         if (message != "") {
             var jiison = { action: "newMessage", msg: message};
@@ -194,8 +244,23 @@
             document.getElementById("message").value = "";
         };
     };
+
+    function attack(){
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        var jiison = { action: "attack"};;
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
+
     function doAction() {
-        var jiison = { action: "doAction"};//'{"move":"right"}';
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        var jiison = { action: "act"};//'{"move":"right"}';
         var payload = JSON.stringify(jiison);
         controlSocket.send(payload);
     };
@@ -216,6 +281,9 @@
             moveDown();
         }
         if (e.keyCode == 65) {
+            attack();
+        }
+        if (e.keyCode == 84) {
             doAction();
         }
     });

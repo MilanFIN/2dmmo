@@ -13,8 +13,10 @@ The world is "round" and populated by islands with npc characters on them.
 - A wear system, including armor, ships and weapons
 - Adding additional items, resources, enemies, npcs is easy with the config file
 
+### in progress
+- player trading
+
 ### todo
-- limit the amount of messages the browser sends
 - weapons for ships
 - saving gamestate to a database
 - multiple server support, all of which connect to a central database to sync player progress between servers
