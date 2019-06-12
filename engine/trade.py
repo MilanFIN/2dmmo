@@ -29,20 +29,79 @@ class Trade:
         self.firstGold += amount
     def addSecondGold(self, amount):
         self.secondGold += amount
-    def getFirstItems(self):
-        return self.firstItems
-
+    def resetFirstGold(self):
+        self.firstGold = 0
+    def resetSecondGold(self):
+        self.secondGold = 0
 
 class Trades:
     def __init__(self):
         self.trades = {}
         self.byFirst = {}
-        self.bySeconds = {}
+        self.bySecond = {}
     def addTrade(self, first, second):
-        self.trades[(first, second)] = Trade
+        self.trades[(first, second)] = Trade(first, second)
         self.byFirst[first] = second
         self.bySecond[second] = first
-    
+    def addItem(self, name, item):
+        comb = ("","")
+        if (name in self.byFirst):
+            comb = (name, self.byFirst[name])
+            if (comb in self.trades):
+                self.trades[comb].addFirstItem(item)
 
+        elif (name in self.bySecond):
+            comb = (self.bySecond[name], name)
+            if (comb in self.trades):
+                self.trades[comb].addSecondItem(item)
+        else:
+            return
+    def removeItem(self, name, item):
+        comb = ("","")
+        if (name in self.byFirst):
+            comb = (name, self.byFirst[name])
+            if (comb in self.trades):
+                self.trades[comb].removeFirstItem(item)
+
+        elif (name in self.bySecond):
+            comb = (self.bySecond[name], name)
+            if (comb in self.trades):
+                self.trades[comb].removeSecondItem(item)
+        else:
+            return
+
+    def addGold(self, name, amount):
+                comb = ("","")
+                if (name in self.byFirst):
+                    comb = (name, self.byFirst[name])
+                    if (comb in self.trades):
+                        self.trades[comb].addFirstGold(amount)
+
+                elif (name in self.bySecond):
+                    comb = (self.bySecond[name], name)
+                    if (comb in self.trades):
+                        self.trades[comb].addSecondGold(item)
+                else:
+                    return
+
+    def resetGold(self, name):
+                comb = ("","")
+                if (name in self.byFirst):
+                    comb = (name, self.byFirst[name])
+                    if (comb in self.trades):
+                        self.trades[comb].resetFirstGold()
+
+                elif (name in self.bySecond):
+                    comb = (self.bySecond[name], name)
+                    if (comb in self.trades):
+                        self.trades[comb].resetSecondGold()
+                else:
+                    return
 
 trades = Trades()
+#trades.addTrade("1", "2")
+#trades.addItem("2", "testi")
+#trades.addItem("2", "testi")
+#trades.removeItem("2", "testi")
+#for i in trades.trades.values():
+#    print(i.getSecondItems())
