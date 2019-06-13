@@ -179,6 +179,8 @@ class Player:
 
         self.inBuilding = False
 
+        self.inTrade = False
+        self.tradeCandidates = []
 
         self.onLand = True
     def getName(self):
@@ -279,6 +281,17 @@ class Player:
     def addGold(self, amount):
         self.inventory.addGold(amount)
 
+    def goToTrade(self):
+        self.inTrade = True
+    def isInTrade(self):
+        return self.inTrade
+
+    def addTradeCandidate(self, name):
+        self.tradeCandidates.append(name)
+    def resetTradeCandidates(self):
+        self.tradeCandidates = []
+    def getTradeCandidates(self):
+        return self.tradeCandidates
 
     def isInBuilding(self):
         return self.inBuilding
@@ -349,7 +362,8 @@ class Player:
         self.inBank = False
 
         self.inBuilding = False
-
+        self.inTrade = False
+        self.resetTradeCandidates()
 
     def moveRight(self, square, hx = -1, hy = -1):
 
@@ -371,6 +385,9 @@ class Player:
         self.inBank = False
 
         self.inBuilding = False
+        self.inTrade = False
+        self.resetTradeCandidates()
+
 
     def moveDown(self, square, hx = -1, hy = -1):
         if (self.moved_ == True or self.inFight != 0):
@@ -391,6 +408,9 @@ class Player:
         self.inBank = False
 
         self.inBuilding = False
+        self.inTrade = False
+        self.resetTradeCandidates()
+
 
     def moveUp(self, square, hx = -1, hy = -1):
         if (self.moved_ == True or self.inFight != 0):
@@ -412,6 +432,8 @@ class Player:
         self.inBank = False
 
         self.inBuilding = False
+        self.inTrade = False
+        self.resetTradeCandidates()
 
 
     def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, hospitals, harbors):

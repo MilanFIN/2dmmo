@@ -98,10 +98,30 @@ class Trades:
                 else:
                     return
 
+    def getTradeState(self, name1, name2):
+        comb = ("","")
+        result = []
+        if ((name1, name2) in self.trades):
+            comb = (name1, name2)
+            result = [self.trades[comb].getFirstItems(),
+                        self.trades[comb].getFirstGold(),
+                        self.trades[comb].getSecondItems(),
+                        self.trades[comb].getSecondGold()]
+        elif ((name2, name1) in self.trades):
+            comb = (name2, name1)
+            result = [self.trades[comb].getSecondItems(),
+                        self.trades[comb].getSecondGold(),
+                        self.trades[comb].getFirstItems(),
+                        self.trades[comb].getFirstGold()]
+        else:
+            return
+        return result
+
+    def removeTrade(self, name1, name2):
+        if ((name1, name2) in self.trades):
+            self.trades.pop((name1, name2), None)
+        if ((name2, name1) in self.trades):
+            self.trades.pop((name2, name1), None)
+
+
 trades = Trades()
-#trades.addTrade("1", "2")
-#trades.addItem("2", "testi")
-#trades.addItem("2", "testi")
-#trades.removeItem("2", "testi")
-#for i in trades.trades.values():
-#    print(i.getSecondItems())

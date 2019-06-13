@@ -51,10 +51,10 @@
 
             };
 
-            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.wear)
+            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.wear)
             if (infoData != prevInfo) {
                 //add new span to update static info, and another for buttons only updated once per change
-                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.wear)
+                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.wear)
                 document.getElementById("info").innerHTML = "shop/bank info goes here"
                 if (data.infoType == "shop"){
                     document.getElementById("info").innerHTML = "Item: sellvalue <br>"
@@ -84,6 +84,19 @@
                     document.getElementById("info").innerHTML += button0 + " " + button1 +"<br>";
                 }
 
+                if (data.infoType == "chooseTradeTarget"){
+                    document.getElementById("info").innerHTML = "Choose trade target: "+ "<br>";
+
+                    console.log(data.tradeTargets)
+                    for (var opponent in data.tradeTargets) {
+                        if (data.tradeTargets.hasOwnProperty(opponent)) {
+                            var button = "<button type='button' onclick=offerTrade('"+data.tradeTargets[opponent]+"');>Choose</button>";
+                            document.getElementById("info").innerHTML += data.tradeTargets[opponent] +" "+ button +"<br>";
+                        }
+                    }
+                }
+
+
 
                 //inventory:
                 var itemNames = Object.keys(data.inventory);
@@ -100,7 +113,10 @@
                     document.getElementById("inventory").innerHTML += "<br>"
                 }
 
+
+
             }
+
             document.getElementById("hp").innerHTML = "Hp: " + data.hp;
 
 
@@ -117,6 +133,18 @@
 
         }
     };
+
+
+    function offerTrade(opp) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "offerTrade", "opponent": opp};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
 
     function unWearAll() {
         var actionTimeStamp = +new Date();

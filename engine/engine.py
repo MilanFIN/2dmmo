@@ -596,8 +596,10 @@ class Game:
         player = self.allPlayers_[playerName]
         if (player.isInBank()):
             return "bank"
-        if (player.isInShop()):
+        elif (player.isInShop()):
             return "shop"
+        elif (len(player.getTradeCandidates()) != 0):
+            return "chooseTradeTarget"
         else:
             return "none"
 
@@ -642,6 +644,10 @@ class Game:
             catalog = copy.deepcopy(shop.getBuyPrices())
             return catalog
         return False
+
+    def getTradeCandidates(self, playerName):
+        player = self.allPlayers_[playerName]
+        return player.getTradeCandidates()
 
     def doAction(self, playerName):
         # check if player is able to do any actions in the game and do them
@@ -708,15 +714,15 @@ class Game:
                     player.addMessage(npc.getType(), npc.getLine())
                     return
 
-        #handle players
+        #handle players challenging others to trade
         for opp in player.getNeighbors():
             opponent = self.allPlayers_[opp]
             if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
-                if (opponent.getX() == player.getX() and opponent.getY() - player.getY()):
-                    print("handle trades here, add new trade , separate functions to add, remove and accept")
+                if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
+                    player.addTradeCandidate(opp)
 
 
-                    break;
+
 
 
         # handle trees
