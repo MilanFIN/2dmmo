@@ -593,7 +593,11 @@ class Game:
         elif (len(player.getTradeCandidates()) != 0):
             return "chooseTradeTarget"
         elif (player.getTradeOffer() != ""):
-            return "tradeOffer"
+            if (player.getTradeOffer() in self.allPlayers_):
+                if (playerName == self.allPlayers_[player.getTradeOffer()].getTradeOffered()):
+                    return "tradeOffer"
+        elif (player.getTradeOffered() != ""):
+            return "tradeOffered"
         else:
             return "none"
 
@@ -733,11 +737,14 @@ class Game:
 
 
         #handle players challenging others to trade
-        for opp in player.getNeighbors():
-            opponent = self.allPlayers_[opp]
-            if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
-                if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
-                    player.addTradeCandidate(opp)
+
+        if (not player.isInTrade() and player.getTradeOffer() == ""):
+            player.resetTradeCandidates()
+            for opp in player.getNeighbors():
+                opponent = self.allPlayers_[opp]
+                if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
+                    if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
+                        player.addTradeCandidate(opp)
 
 
     def attack(self, playerName):
@@ -911,7 +918,10 @@ class Game:
 
     def offerTrade(self, playerName, opponent):
         if (opponent in self.allPlayers_):
-            self.allPlayers_[opponent].addTradeOffer(playerName)
+            if (self.allPlayers_[opponent].getTradeOffer() == ""):
+                self.allPlayers_[opponent].addTradeOffer(playerName)
+                self.allPlayers_[playerName].resetTradeCandidates()
+                self.allPlayers_[playerName].offerTrade(opponent)
         else:
             return
 
@@ -928,6 +938,11 @@ class Game:
             self.allPlayers_[opponent].resetTradeCandidates()
         player.declineTradeOffer()
 
+    def getTextInfo(self, infoType):
+        if (infoType == "tradeOffered"):
+            return "You have offered to start a trade with the chosen player"
+        else:
+            return ""
 
 
 """

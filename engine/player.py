@@ -182,6 +182,7 @@ class Player:
         self.inTrade = False
         self.tradeCandidates = []
         self.tradeOffer = ""
+        self.tradeOffered = ""
 
         self.onLand = True
     def getName(self):
@@ -292,9 +293,16 @@ class Player:
     def resetTradeCandidates(self):
         self.tradeCandidates = []
         self.tradeOffer = ""
+        self.tradeOffered = ""
 
     def getTradeCandidates(self):
         return self.tradeCandidates
+
+    def getTradeOffered(self):
+        return self.tradeOffered
+    def offerTrade(self, name):
+        print("offered", name)
+        self.tradeOffered = name
 
     def addTradeOffer(self, name):
         self.tradeOffer = name

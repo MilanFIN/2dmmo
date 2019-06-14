@@ -51,10 +51,10 @@
 
             };
 
-            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.wear)
+            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.textInfo)  + JSON.stringify(data.wear)
             if (infoData != prevInfo) {
                 //add new span to update static info, and another for buttons only updated once per change
-                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.wear)
+                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear)
                 document.getElementById("info").innerHTML = "shop/bank info goes here"
                 if (data.infoType == "shop"){
                     document.getElementById("info").innerHTML = "Item: sellvalue <br>"
@@ -102,6 +102,12 @@
                     document.getElementById("info").innerHTML += button0 + " " + button1
 
                 }
+
+                if (data.infoType == "textInfo"){
+                    document.getElementById("info").innerHTML = data.textInfo;
+
+                }
+
 
 
                 //inventory:

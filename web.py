@@ -49,6 +49,7 @@ class Controls(tornado.websocket.WebSocketHandler):
         bankBalance = ""
         tradeTargets = []
         tradeOffer = ""
+        textInfo = ""
         if (infoType == "shop"):
             sellInfo = game.getShopSell(clients[self])
             buyInfo = game.getShopBuy(clients[self])
@@ -58,11 +59,15 @@ class Controls(tornado.websocket.WebSocketHandler):
             tradeTargets = game.getTradeCandidates(clients[self])
         elif (infoType == "tradeOffer"):
             tradeOffer = game.getTradeOffer(clients[self])
+        elif (infoType == "tradeOffered"):
+            infoType = "textInfo"
+            textInfo = game.getTextInfo("tradeOffered")
+
 
         wear = game.getWear(clients[self])
 
 
-        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets, "tradeOffer": tradeOffer ,"wear": wear })
+        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets, "tradeOffer": tradeOffer, "textInfo": textInfo ,"wear": wear })
         # self.write_message(json.dumps(xyMap))
 
 
