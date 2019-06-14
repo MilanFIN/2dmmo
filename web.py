@@ -48,6 +48,7 @@ class Controls(tornado.websocket.WebSocketHandler):
         buyInfo = ""
         bankBalance = ""
         tradeTargets = []
+        tradeOffer = ""
         if (infoType == "shop"):
             sellInfo = game.getShopSell(clients[self])
             buyInfo = game.getShopBuy(clients[self])
@@ -55,11 +56,13 @@ class Controls(tornado.websocket.WebSocketHandler):
             bankBalance = game.getBankBalance(clients[self])
         elif (infoType == "chooseTradeTarget"):
             tradeTargets = game.getTradeCandidates(clients[self])
+        elif (infoType == "tradeOffer"):
+            tradeOffer = game.getTradeOffer(clients[self])
 
         wear = game.getWear(clients[self])
 
 
-        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets ,"wear": wear })
+        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets, "tradeOffer": tradeOffer ,"wear": wear })
         # self.write_message(json.dumps(xyMap))
 
 
@@ -136,10 +139,21 @@ class Controls(tornado.websocket.WebSocketHandler):
         if (parsed_msg["action"] == "offerTrade"):
             if (self in clients.keys()):
                 opponent = parsed_msg["opponent"]
-                print(opponent)
-                """
-                ADD TRADE OFFER TO OPPONENT HERE
-                """
+                game.offerTrade(clients[self], opponent)
+
+
+        if (parsed_msg["action"] == "acceptTradeOffer"):
+            if (self in clients.keys()):
+                opponent = parsed_msg["opponent"]
+                game.acceptTradeOffer(clients[self], opponent)
+
+
+        if (parsed_msg["action"] == "declineTradeOffer"):
+            if (self in clients.keys()):
+                game.declineTradeOffer(clients[self])
+                pass
+
+
 
 
 

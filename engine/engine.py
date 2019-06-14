@@ -17,19 +17,11 @@ import json
 """
 TODO:
 
--wearing things such as ships and armor?
-    -ships changeable only on land
-    -ships have a reduction fraction that is taken from damage recieved
-    -make ship item type and make it wearable
-
--make npcs and monsters spawn on different locations on the same island
 
 
+#1 pelaaja tekee 2:lle tarjouksen, jos 2 declinee, 1 jää näkyviin choose painike?
 
 
-
--limit worldsize, for ex 100 by 100 for a start?
-    -make "round"?
 
 
 
@@ -600,6 +592,8 @@ class Game:
             return "shop"
         elif (len(player.getTradeCandidates()) != 0):
             return "chooseTradeTarget"
+        elif (player.getTradeOffer() != ""):
+            return "tradeOffer"
         else:
             return "none"
 
@@ -648,6 +642,11 @@ class Game:
     def getTradeCandidates(self, playerName):
         player = self.allPlayers_[playerName]
         return player.getTradeCandidates()
+
+    def getTradeOffer(self, playerName):
+        player = self.allPlayers_[playerName]
+        return player.getTradeOffer()
+
 
     def doAction(self, playerName):
         # check if player is able to do any actions in the game and do them
@@ -714,16 +713,6 @@ class Game:
                     player.addMessage(npc.getType(), npc.getLine())
                     return
 
-        #handle players challenging others to trade
-        for opp in player.getNeighbors():
-            opponent = self.allPlayers_[opp]
-            if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
-                if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
-                    player.addTradeCandidate(opp)
-
-
-
-
 
         # handle trees
         if ((x, y) in self.trees):
@@ -742,6 +731,13 @@ class Game:
                         player.addMessage("Game", "You " + tree.getHitNote() + ".")
                     return
 
+
+        #handle players challenging others to trade
+        for opp in player.getNeighbors():
+            opponent = self.allPlayers_[opp]
+            if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
+                if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
+                    player.addTradeCandidate(opp)
 
 
     def attack(self, playerName):
@@ -912,6 +908,27 @@ class Game:
     def getWear(self, playerName):
         player = self.allPlayers_[playerName]
         return player.wear.getWear()
+
+    def offerTrade(self, playerName, opponent):
+        if (opponent in self.allPlayers_):
+            self.allPlayers_[opponent].addTradeOffer(playerName)
+        else:
+            return
+
+    def acceptTradeOffer(self, playerName, opponent):
+        if (opponent in self.allPlayers_):
+            print("trade should happen now")
+        else:
+            return
+
+    def declineTradeOffer(self, playerName):
+        player = self.allPlayers_[playerName]
+        opponent = player.getTradeOffer()
+        if (opponent in self.allPlayers_):
+            self.allPlayers_[opponent].resetTradeCandidates()
+        player.declineTradeOffer()
+
+
 
 """
 #testing purposes only

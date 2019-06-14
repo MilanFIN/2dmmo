@@ -51,10 +51,10 @@
 
             };
 
-            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.wear)
+            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.wear)
             if (infoData != prevInfo) {
                 //add new span to update static info, and another for buttons only updated once per change
-                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.wear)
+                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.wear)
                 document.getElementById("info").innerHTML = "shop/bank info goes here"
                 if (data.infoType == "shop"){
                     document.getElementById("info").innerHTML = "Item: sellvalue <br>"
@@ -87,7 +87,6 @@
                 if (data.infoType == "chooseTradeTarget"){
                     document.getElementById("info").innerHTML = "Choose trade target: "+ "<br>";
 
-                    console.log(data.tradeTargets)
                     for (var opponent in data.tradeTargets) {
                         if (data.tradeTargets.hasOwnProperty(opponent)) {
                             var button = "<button type='button' onclick=offerTrade('"+data.tradeTargets[opponent]+"');>Choose</button>";
@@ -96,6 +95,13 @@
                     }
                 }
 
+                if (data.infoType == "tradeOffer"){
+                    document.getElementById("info").innerHTML = data.tradeOffer + "<br>Wants to trade with you. <br>";
+                    var button0 = "<button type='button' onclick=acceptTradeOffer('"+data.tradeOffer+"');>Accept</button>";
+                    var button1 = "<button type='button' onclick=declineTradeOffer();>Decline</button>";
+                    document.getElementById("info").innerHTML += button0 + " " + button1
+
+                }
 
 
                 //inventory:
@@ -134,6 +140,28 @@
         }
     };
 
+    function acceptTradeOffer(opp) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "acceptTradeOffer", "opponent": opp};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+
+    }
+
+    function declineTradeOffer() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "declineTradeOffer"};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
 
     function offerTrade(opp) {
         var actionTimeStamp = +new Date();
