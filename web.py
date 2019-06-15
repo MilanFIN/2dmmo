@@ -49,6 +49,7 @@ class Controls(tornado.websocket.WebSocketHandler):
         bankBalance = ""
         tradeTargets = []
         tradeOffer = ""
+        tradeItems = {}
         textInfo = ""
         if (infoType == "shop"):
             sellInfo = game.getShopSell(clients[self])
@@ -62,12 +63,18 @@ class Controls(tornado.websocket.WebSocketHandler):
         elif (infoType == "tradeOffered"):
             infoType = "textInfo"
             textInfo = game.getTextInfo("tradeOffered")
+        elif (infoType == "inTrade"):
+            tradeItems = game.getTradeItems(clients[self])
+            infoType = "inTrade"
 
 
         wear = game.getWear(clients[self])
 
 
-        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs, "inventory": items, "infoType": infoType, "sellInfo": sellInfo, "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets, "tradeOffer": tradeOffer, "textInfo": textInfo ,"wear": wear })
+        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs,
+                            "inventory": items, "infoType": infoType, "sellInfo": sellInfo,
+                             "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets,
+                              "tradeOffer": tradeOffer, "textInfo": textInfo , "wear": wear, "tradeItems": tradeItems})
         # self.write_message(json.dumps(xyMap))
 
 
@@ -156,7 +163,44 @@ class Controls(tornado.websocket.WebSocketHandler):
         if (parsed_msg["action"] == "declineTradeOffer"):
             if (self in clients.keys()):
                 game.declineTradeOffer(clients[self])
-                pass
+
+
+
+        if (parsed_msg["action"] == "acceptTrade"):
+            if (self in clients.keys()):
+                game.acceptTrade(clients[self])
+
+        if (parsed_msg["action"] == "declineTrade"):
+            if (self in clients.keys()):
+                game.declineTrade(clients[self])
+
+
+        if (parsed_msg["action"] == "addTradeItem"):
+            if (self in clients.keys()):
+                item = parsed_msg["item"]
+                game.addTradeItem(clients[self], item)
+
+
+        if (parsed_msg["action"] == "removeTradeItem"):
+            if (self in clients.keys()):
+                item = parsed_msg["item"]
+                game.removeTradeItem(clients[self], item)
+
+
+
+        if (parsed_msg["action"] == "addTradeGold"):
+            if (self in clients.keys()):
+                amount = parsed_msg["amount"]
+                game.addTradeGold(clients[self], amount)
+
+
+        if (parsed_msg["action"] == "removeTradeGold"):
+            if (self in clients.keys()):
+                amount = parsed_msg["amount"]
+                game.removeTradeGold(clients[self], amount)
+
+
+
 
 
 

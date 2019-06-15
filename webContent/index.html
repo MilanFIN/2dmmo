@@ -51,10 +51,10 @@
 
             };
 
-            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.textInfo)  + JSON.stringify(data.wear)
+            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.textInfo)  + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
             if (infoData != prevInfo) {
                 //add new span to update static info, and another for buttons only updated once per change
-                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear)
+                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
                 document.getElementById("info").innerHTML = "shop/bank info goes here"
                 if (data.infoType == "shop"){
                     document.getElementById("info").innerHTML = "Item: sellvalue <br>"
@@ -103,6 +103,56 @@
 
                 }
 
+
+                if (data.infoType == "inTrade"){
+                    document.getElementById("info").innerHTML = "";
+
+                    acceptButton = "<button type='button' onclick=acceptTrade();>Accept</button>";
+                    declineButton = "<button type='button' onclick=declineTrade();>Decline</button>";
+
+                    document.getElementById("info").innerHTML += acceptButton + declineButton + "<br>";
+
+
+                    document.getElementById("info").innerHTML += "Your Items: <br>";
+                    if (data.tradeItems["gold"] != "") {
+                        var button = "<button type='button' onclick=addTradeGold();>Add</button>";
+                        document.getElementById("info").innerHTML += "gold: " + data.tradeItems["gold"] + button +"<br>";
+                    }
+                    for (var item in data.tradeItems["items"]) {
+                        var button = "<button type='button' onclick=addTradeItem('"+item+"');>Add</button>";
+
+                        document.getElementById("info").innerHTML += item + ": " + data.tradeItems["items"][item] + button + "<br>";
+                    }
+
+
+
+
+                    document.getElementById("info").innerHTML += "Items you are offering: <br>";
+                    if (data.tradeItems["tradeGold"] != "") {
+                        var button = "<button type='button' onclick=removeTradeGold();>Remove</button>";
+
+                        document.getElementById("info").innerHTML += "gold: " + data.tradeItems["tradeGold"] + button + "<br>";
+                    }
+                    for (var item in data.tradeItems["tradeItems"]) {
+                        var button = "<button type='button' onclick=removeTradeItem('"+item+"');>Remove</button>";
+
+                        document.getElementById("info").innerHTML += item + ": " + data.tradeItems["tradeItems"][item] + button + "<br>";
+                    }
+
+
+                    document.getElementById("info").innerHTML += "Items your opponent is offering: <br>";
+                    if (data.tradeItems["opponentGold"] != "") {
+                        document.getElementById("info").innerHTML += "gold: " + data.tradeItems["opponentGold"] + "<br>";
+                    }
+                    for (var item in data.tradeItems["opponentItems"]) {
+
+                        document.getElementById("info").innerHTML += item + ": " + data.tradeItems["opponentItems"][item] + "<br>";
+                    }
+
+
+
+                }
+
                 if (data.infoType == "textInfo"){
                     document.getElementById("info").innerHTML = data.textInfo;
 
@@ -145,6 +195,75 @@
 
         }
     };
+
+
+    function acceptTrade() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "acceptTrade"};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
+
+    function declineTrade() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "declineTrade"};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
+
+    function addTradeItem(item) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "addTradeItem", "item": item};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+
+    }
+
+    function removeTradeItem(item) {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "removeTradeItem", "item": item};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
+
+
+    function addTradeGold() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "addTradeGold", "amount": 1};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
+
+    function removeTradeGold() {
+        var actionTimeStamp = +new Date();
+        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+            return
+        }
+        lastActionTimeStamp = actionTimeStamp;
+        var jiison = { action: "removeTradeGold", "amount": 1};
+        var payload = JSON.stringify(jiison);
+        controlSocket.send(payload);
+    }
 
     function acceptTradeOffer(opp) {
         var actionTimeStamp = +new Date();

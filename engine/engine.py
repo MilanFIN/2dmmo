@@ -8,6 +8,7 @@ from engine.gameObjects import *
 from engine.inventory import *
 from engine.player import *
 from engine.pseudo import *
+from engine.trade import *
 
 import datetime
 import random
@@ -71,6 +72,8 @@ class Game:
         self.hospitals = {}
         self.Npcs = {}
         self.monsters = {}
+
+        self.trades = Trades()
 
     def getSize(self):
         return 3 * self.squareSize_
@@ -598,6 +601,8 @@ class Game:
                     return "tradeOffer"
         elif (player.getTradeOffered() != ""):
             return "tradeOffered"
+        elif (player.isInTrade() == True):
+            return "inTrade"
         else:
             return "none"
 
@@ -738,13 +743,15 @@ class Game:
 
         #handle players challenging others to trade
 
-        if (not player.isInTrade() and player.getTradeOffer() == ""):
+        if (not player.isInTrade() and player.getTradeOffer() == "" and player.getTradeOffered() == ""):
             player.resetTradeCandidates()
             for opp in player.getNeighbors():
                 opponent = self.allPlayers_[opp]
-                if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
-                    if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
-                        player.addTradeCandidate(opp)
+                if (not opponent.isInTrade() and opponent.getTradeOffer() == "" and opponent.getTradeOffered() == ""):
+                    if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
+                        if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
+                            self.trades.removeTrade(playerName, opp)
+                            player.addTradeCandidate(opp)
 
 
     def attack(self, playerName):
@@ -927,7 +934,17 @@ class Game:
 
     def acceptTradeOffer(self, playerName, opponent):
         if (opponent in self.allPlayers_):
-            print("trade should happen now")
+            if (playerName in self.allPlayers_ and opponent in self.allPlayers_):
+
+                player = self.allPlayers_[playerName]
+                opp = self.allPlayers_[opponent]
+
+                self.trades.addTrade(playerName, opponent)
+                player.resetTradeCandidates()
+                opp.resetTradeCandidates()
+                player.goToTrade()
+                opp.goToTrade()
+
         else:
             return
 
@@ -938,11 +955,124 @@ class Game:
             self.allPlayers_[opponent].resetTradeCandidates()
         player.declineTradeOffer()
 
+
+    def declineTrade(self, playerName):
+        player = self.allPlayers_[playerName]
+        opponent = self.trades.getOpponent(playerName)
+        if (opponent in self.allPlayers_):
+            self.allPlayers_[opponent].leaveTrade()
+        self.trades.removeTrade(playerName, opponent)
+        player.leaveTrade()
+
+
+    def acceptTrade(self, playerName):
+        player = self.allPlayers_[playerName]
+        self.trades.acceptTrade(playerName)
+        opponent = self.trades.getOpponent(playerName)
+        if (opponent != None):
+            if (self.trades.tradeAccepted(playerName, opponent)):
+                print("trade accepted")
+                if (opponent in self.allPlayers_):
+                    #dealing with moving the items
+                    opp = self.allPlayers_[opponent]
+                    tradeState = self.trades.getTradeState(playerName, opponent)
+                    player.inventory.removeGold(tradeState[1])
+                    opp.inventory.addGold(tradeState[1])
+
+                    opp.inventory.removeGold(tradeState[3])
+                    player.inventory.addGold(tradeState[3])
+
+                    for item in tradeState[0]:
+                        for i in range(tradeState[0][item]):
+                            player.inventory.removeItem(item)
+                            opp.inventory.addItem(item)
+
+                    for item in tradeState[2]:
+                        for i in range(tradeState[2][item]):
+                            opp.inventory.removeItem(item)
+                            player.inventory.addItem(item)
+
+
+                    #leaving trade
+                    opp.leaveTrade()
+                self.trades.removeTrade(playerName, opponent)
+                player.leaveTrade()
+
+
+
+    def getTradeItems(self, playerName):
+        player = self.allPlayers_[playerName]
+
+        result = {}
+        opponent = self.trades.getOpponent(playerName) #firstitems, firstgold, seconditems, secondgold
+
+        tempResults = self.trades.getTradeState(playerName, opponent)
+        result["items"] = player.getPhysicalInventory()
+        result["gold"] = player.getGold()
+        result["tradeItems"] = tempResults[0]
+        result["tradeGold"] = tempResults[1]
+        result["opponentItems"] = tempResults[2]
+        result["opponentGold"] = tempResults[3]
+        return result
+
+
+
+    def addTradeItem(self, playerName, item):
+        player = self.allPlayers_[playerName]
+        if (not player.isInTrade()):
+            return
+        opponent = self.trades.getOpponent(playerName)
+        if (opponent == None):
+            return
+        if (item not in player.getPhysicalInventory()):
+            return
+
+
+        tradeState = self.trades.getTradeState(playerName, opponent)
+
+        if (item not in tradeState[0]):
+            self.trades.addItem(playerName, item)
+        elif (player.getPhysicalInventory()[item] > tradeState[0][item] ):
+            self.trades.addItem(playerName, item)
+
+
+    def removeTradeItem(self, playerName, item):
+        player = self.allPlayers_[playerName]
+        if (not player.isInTrade()):
+            return
+        self.trades.removeItem(playerName, item)
+
+
+    def addTradeGold(self, playerName, amount):
+        player = self.allPlayers_[playerName]
+        if (not player.isInTrade()):
+            return
+        opponent = self.trades.getOpponent(playerName)
+        if (opponent == None):
+            return
+        tradeState = self.trades.getTradeState(playerName, opponent)
+        if (tradeState[1] + amount <= player.getGold()):
+            self.trades.addGold(playerName, amount)
+
+
+    def removeTradeGold(self, playerName, amount):
+        player = self.allPlayers_[playerName]
+        if (not player.isInTrade()):
+            return
+        self.trades.removeGold(playerName, amount)
+
+
+
+
+
     def getTextInfo(self, infoType):
         if (infoType == "tradeOffered"):
             return "You have offered to start a trade with the chosen player"
         else:
             return ""
+
+
+
 
 
 """

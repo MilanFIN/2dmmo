@@ -287,6 +287,8 @@ class Player:
         self.inTrade = True
     def isInTrade(self):
         return self.inTrade
+    def leaveTrade(self):
+        self.inTrade = False
 
     def addTradeCandidate(self, name):
         self.tradeCandidates.append(name)
@@ -301,7 +303,6 @@ class Player:
     def getTradeOffered(self):
         return self.tradeOffered
     def offerTrade(self, name):
-        print("offered", name)
         self.tradeOffered = name
 
     def addTradeOffer(self, name):
