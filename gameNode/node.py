@@ -2,6 +2,8 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import json
+from websocket import create_connection
+
 from engine.engine import Game
 
 
@@ -81,7 +83,24 @@ class Controls(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         #print(asd.getMap())
         parsed_msg = json.loads(message)
-        if (parsed_msg["action"] == "register"):
+        if (parsed_msg["action"] == "login"):
+
+
+
+            ws = create_connection("ws://localhost:3001/ws")
+            name = parsed_msg["name"]
+            password = parsed_msg["password"]
+            passphrase = "testipassu1234"
+            message = {"action": "login", "passphrase": "testipassu1234", "name": name, "password": password}
+            ws.send(json.dumps(message))
+            print("recieving game data...")
+            result =  ws.recv()
+            userData = json.loads(result)
+            print(userData["name"])
+            print("Received '%s'" % result)
+            ws.close()
+
+
 
             if (parsed_msg["name"] not in clients.values()):
                 clients[self] = parsed_msg["name"]

@@ -366,16 +366,17 @@
     };
 
 
-    function register() {
+    function login() {
         var actionTimeStamp = +new Date();
         if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
             return
         }
         lastActionTimeStamp = actionTimeStamp;
         var playerName =  document.getElementById("playerName").value;
+        var passwd = document.getElementById("password").value;
         //console.log(playerName);
         if (playerName != "" && playerName != " ") {
-            var jiison = { action: "register", name: playerName};
+            var jiison = { action: "login", name: playerName, password: passwd};
             var payload = JSON.stringify(jiison);
             controlSocket.send(payload);
         } else {
@@ -492,8 +493,10 @@
 
 
     <div id="map" class="map">
-        <input id="playerName" type="text" name="playerName" placeholder="Player name">
-        <button onclick="register()">Register</button>
+        <input id="playerName" type="text" name="playerName" placeholder="username">
+        <input id="password" type="text" name="password" placeholder="password">
+
+        <button onclick="login()">Login</button>
 
         map goes here when aquired</div>
 
