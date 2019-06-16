@@ -83,9 +83,9 @@ class Controls(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         #print(asd.getMap())
         parsed_msg = json.loads(message)
+
+
         if (parsed_msg["action"] == "login"):
-
-
 
             ws = create_connection("ws://localhost:3001/ws")
             name = parsed_msg["name"]
@@ -93,25 +93,24 @@ class Controls(tornado.websocket.WebSocketHandler):
             passphrase = "testipassu1234"
             message = {"action": "login", "passphrase": "testipassu1234", "name": name, "password": password}
             ws.send(json.dumps(message))
-            print("recieving game data...")
             result =  ws.recv()
             userData = json.loads(result)
-            print(userData["name"])
-            print("Received '%s'" % result)
             ws.close()
+            if (userData["result"] == "login"):
+                print("Received '%s'" % result)
+                if (parsed_msg["name"] not in clients.values()):
+                    clients[self] = parsed_msg["name"]
+                    #print(clients)
+                    game.addPlayer(parsed_msg["name"])
+                    #print(parsed_msg["name"] + " registered")
+                    self.timer_ = tornado.ioloop.PeriodicCallback(self.updateClient, 200, jitter=0)
 
+                    self.timer_.start()
+                else:
+                    self.write_message({"alert": "Name is already taken."})
+            elif (userData["result"] == "error"):
+                print("incorrect username and password")
 
-
-            if (parsed_msg["name"] not in clients.values()):
-                clients[self] = parsed_msg["name"]
-                #print(clients)
-                game.addPlayer(parsed_msg["name"])
-                #print(parsed_msg["name"] + " registered")
-                self.timer_ = tornado.ioloop.PeriodicCallback(self.updateClient, 200, jitter=0)
-
-                self.timer_.start()
-            else:
-                self.write_message({"alert": "Name is already taken."})
 
 
         if (parsed_msg["action"] == "moveRight"):

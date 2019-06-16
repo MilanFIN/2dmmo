@@ -59,10 +59,14 @@ class wshandler(tornado.websocket.WebSocketHandler):
                 userdata = cursor.fetchall()
                 #connection.commit()
                 if (userdata == []):
-                    self.ws_connection.write_message("wrong username or password")
+                    result = {"result": "error"}
+                    self.ws_connection.write_message(json.dumps(result))
                 else:
-                    userdata2 = {"name": userdata[0][0], "gamestate":userdata[0][1]}
+                    userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
                     self.ws_connection.write_message(json.dumps(userdata2))
+        else:
+            result = {"result": "error"}
+            self.ws_connection.write_message(json.dumps(result))
 
 
 
