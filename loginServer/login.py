@@ -15,23 +15,13 @@ connection = psycopg2.connect(user = "mmo",
 cursor = connection.cursor()
 
 defaultLoadout = {"worldx":0, "worldy":0, "x":0, "y":0, "gold":10, "bankGold":0}
-
+playersOnline = {}
 
 
 class Root(tornado.web.RequestHandler):
     def get(self):
         self.render("webContent/index.html")
-    def post(self):
-        name = self.get_argument('username')
-        passwd = self.get_argument('password')
-        gst = defaultLoadout
-        gamestate = json.dumps(gst)
-        query =  "INSERT INTO mmo (name, password, gamestate) VALUES (%s, %s, %s);"
 
-        data = (name, passwd, gamestate)
-        cursor.execute(query, data)
-        connection.commit()
-        self.render("webContent/registered.html")
 
 
 class wshandler(tornado.websocket.WebSocketHandler):
@@ -67,8 +57,23 @@ class wshandler(tornado.websocket.WebSocketHandler):
 
 
         if ("passphrase" in parsed_msg):
+
+
             if (parsed_msg["passphrase"] == "testipassu1234"):
-                if (parsed_msg["action"] == "update"):
+
+                #logout, store gamestate and remove player from known online players
+                if (parsed_msg["action"] == "logout" and "name" in parsed_msg and "gamestate" in parsed_msg):
+
+                    query = "UPDATE mmo SET gamestate = %s WHERE name = %s";
+                    data = (json.dumps(parsed_msg["gamestate"]), parsed_msg["name"])
+                    cursor.execute(query, data)
+                    connection.commit()
+
+                    if (parsed_msg["name"] in playersOnline):
+                        del playersOnline[parsed_msg["name"]]
+
+                #store gamestate for backup
+                if (parsed_msg["action"] == "update" and "gamestate" in parsed_msg):
                 #query =  "INSERT INTO mmo (name, password, gamestate) VALUES (%s, %s, %s);"
 
                     query = "UPDATE mmo SET gamestate = %s WHERE name = %s";
@@ -76,24 +81,29 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     cursor.execute(query, data)
                     connection.commit()
 
-
-                if (parsed_msg["action"] == "login"):
+                #laod gamestate and add to online players
+                elif (parsed_msg["action"] == "login"):
                     name = parsed_msg["name"]
-                    passwd = parsed_msg["password"]
 
-                    query = "SELECT name, gamestate FROM mmo WHERE name = %s and password = %s"
-                    data = (name, passwd)
-                    cursor.execute(query, data)
-                    userdata = cursor.fetchall()
-                    #connection.commit()
-                    if (userdata == []):
-                        result = {"result": "error"}
+                    if (name in playersOnline):
+                        result = {"result": "error", "message": "already logged in"}
                         self.ws_connection.write_message(json.dumps(result))
                     else:
-                        userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
-                        self.ws_connection.write_message(json.dumps(userdata2))
+                        passwd = parsed_msg["password"]
+                        query = "SELECT name, gamestate FROM mmo WHERE name = %s and password = %s"
+                        data = (name, passwd)
+                        cursor.execute(query, data)
+                        userdata = cursor.fetchall()
+                        #connection.commit()
+                        if (userdata == []):
+                            result = {"result": "error", "message": "wrong username or password"}
+                            self.ws_connection.write_message(json.dumps(result))
+                        else:
+                            userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
+                            self.ws_connection.write_message(json.dumps(userdata2))
+                            playersOnline[name] = 1
             else:
-                result = {"result": "error"}
+                result = {"result": "error", "messasge": "not authorized"}
                 self.ws_connection.write_message(json.dumps(result))
 
 
