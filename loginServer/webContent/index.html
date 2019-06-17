@@ -1,14 +1,40 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+    <script>
+        var socket = new WebSocket("ws://localhost:3001/ws");
+
+        socket.onmessage = function (evt) {
+            var data = JSON.parse(evt.data);
+
+            if (data.result == "register") {
+                alert(data.message);
+            }
+            else if (data.result == "error") {
+                alert(data.message);
+            }
+
+        }
+
+        function register(){
+            var jiison = { "action": "register", "name": document.getElementById("name").value, "password": document.getElementById("password").value};
+            var payload = JSON.stringify(jiison);
+            socket.send(payload);
+
+        }
+
+    </script>
+</head>
+
+
 <body>
 
-<form method="post">
-  username: <input type="text" name="username"><br>
-  password: <input type="text" name="password"><br>
-  <input type="submit" value="Submit">
-</form>
-
-<p></p>
+    <div id="register" class="register">register: <br>
+        <input id="name" type="text" name="name" placeholder="Username"> <br>
+        <input id="password" type="text" name="password" placeholder="Password"> <br>
+        <button onclick="register()">Register</button>
+    </div>
 
 </body>
 </html>

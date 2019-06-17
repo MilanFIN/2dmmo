@@ -992,6 +992,16 @@ class Game:
                             opp.inventory.removeItem(item)
                             player.inventory.addItem(item)
 
+                    playeritems = player.inventory.getPhysicalItems()
+                    for item in player.wear.getWear():
+                        if (item not in playeritems):
+                            player.wear.removeIfWorn(item)
+
+                    oppitems = opp.inventory.getPhysicalItems()
+                    for item in opp.wear.getWear():
+                        if (item not in oppitems):
+                            opp.wear.removeIfWorn(item)
+
 
                     #leaving trade
                     opp.leaveTrade()
