@@ -32,6 +32,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
         parsed_msg = json.loads(message)
 
 
+        #register request is made by the browser and as such doesn't require authorization
         if (parsed_msg["action"] == "register"):
             if ("name" in parsed_msg and "password" in parsed_msg):
 
@@ -55,7 +56,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     self.write_message({"result": "register", "message": "you registered with the username " + parsed_msg["name"] + " You can now login with that name"})
 
 
-
+        #this stuff requires a passphrase as its gameplay critical and is made by the servernode
         if ("passphrase" in parsed_msg):
 
 

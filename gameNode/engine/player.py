@@ -207,6 +207,24 @@ class Player:
         #other players that are in the vicinity of the player
         #used for messaging
         return self.neightbors_
+
+
+    def getGameState(self):
+        result = {}
+        result["worldx"] = self.worldX_
+        result["worldy"] = self.worldY_
+        result["x"] = self.x_
+        result["y"] = self.y_
+
+        result["gold"] = self.inventory.getGold()
+        result["bankGold"] = self.bank.getBalance()
+
+        result["hp"] = self.hp
+        result["onland"] = self.onLand
+
+        return result
+
+
     def addMessage(self, playerName, message):
         self.messages_.append(playerName + ": " + message)
     def getMessages(self):

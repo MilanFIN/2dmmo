@@ -1073,14 +1073,17 @@ class Game:
 
 
 
-
+    def getGameState(self, playerName):
+        player = self.allPlayers_[playerName]
+        gamestate = player.getGameState()
+        print("asd: ", gamestate)
+        return gamestate
 
     def getTextInfo(self, infoType):
         if (infoType == "tradeOffered"):
             return "You have offered to start a trade with the chosen player"
         else:
             return ""
-
 
 
 

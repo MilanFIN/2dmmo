@@ -12,7 +12,7 @@ from engine.engine import Game
 
 clients = {}
 game = Game()
-
+masterAddress = "ws://localhost:3001/ws"
 
 
 def updateAI(): #called every second independently from player actions, updates ai locations
@@ -87,7 +87,7 @@ class Controls(tornado.websocket.WebSocketHandler):
 
         if (parsed_msg["action"] == "login"):
 
-            ws = create_connection("ws://localhost:3001/ws")
+            ws = create_connection(masterAddress)
             name = parsed_msg["name"]
             password = parsed_msg["password"]
             passphrase = "testipassu1234"
@@ -97,7 +97,7 @@ class Controls(tornado.websocket.WebSocketHandler):
             userData = json.loads(result)
             ws.close()
             if (userData["result"] == "login"):
-                print("Received '%s'" % result)
+                #print("Received '%s'" % result)
                 if (parsed_msg["name"] not in clients.values()):
                     clients[self] = parsed_msg["name"]
                     #print(clients)
@@ -226,6 +226,20 @@ class Controls(tornado.websocket.WebSocketHandler):
 
 
     def on_close(self):
+
+
+        if (self in clients):
+            gamestate = json.dumps(game.getGameState(clients[self]))
+            print(gamestate)
+            name = clients[self]
+
+            ws = create_connection(masterAddress)
+            passphrase = "testipassu1234"
+            message = {"action": "logout", "passphrase": "testipassu1234", "name": name, "gamestate": gamestate}
+            ws.send(json.dumps(message))
+
+
+
         try:
             game.removePlayer(clients[self])
         except Exception:
@@ -241,6 +255,8 @@ class Controls(tornado.websocket.WebSocketHandler):
             self.timer_.stop()
         except Exception:
             pass #timer never existed
+
+
 
 
 
