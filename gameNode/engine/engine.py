@@ -1076,7 +1076,6 @@ class Game:
     def getGameState(self, playerName):
         player = self.allPlayers_[playerName]
         gamestate = player.getGameState()
-        print("asd: ", gamestate)
         return gamestate
 
     def getTextInfo(self, infoType):

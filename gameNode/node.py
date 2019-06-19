@@ -229,7 +229,7 @@ class Controls(tornado.websocket.WebSocketHandler):
 
 
         if (self in clients):
-            gamestate = json.dumps(game.getGameState(clients[self]))
+            gamestate = game.getGameState(clients[self])#json.dumps(game.getGameState(clients[self]))
             print(gamestate)
             name = clients[self]
 

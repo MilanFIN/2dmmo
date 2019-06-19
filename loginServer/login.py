@@ -73,6 +73,10 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     if (parsed_msg["name"] in playersOnline):
                         del playersOnline[parsed_msg["name"]]
 
+
+                    print(json.dumps(parsed_msg["gamestate"]))
+
+
                 #store gamestate for backup
                 if (parsed_msg["action"] == "update" and "gamestate" in parsed_msg):
                 #query =  "INSERT INTO mmo (name, password, gamestate) VALUES (%s, %s, %s);"
@@ -81,6 +85,10 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     data = (json.dumps(parsed_msg["gamestate"]), parsed_msg["name"])
                     cursor.execute(query, data)
                     connection.commit()
+
+
+
+
 
                 #laod gamestate and add to online players
                 elif (parsed_msg["action"] == "login"):
@@ -103,6 +111,8 @@ class wshandler(tornado.websocket.WebSocketHandler):
                             userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
                             self.ws_connection.write_message(json.dumps(userdata2))
                             playersOnline[name] = 1
+                            #state = json.loads(userdata[0][1])
+
             else:
                 result = {"result": "error", "messasge": "not authorized"}
                 self.ws_connection.write_message(json.dumps(result))

@@ -9,7 +9,7 @@ from engine.pseudo import *
 from engine.items import *
 
 import configparser
-
+import json
 
 class MapSquare:
     """
@@ -221,6 +221,7 @@ class Player:
 
         result["hp"] = self.hp
         result["onland"] = self.onLand
+        result["inventory"] = self.inventory.getPhysicalItems()
 
         return result
 
