@@ -13,11 +13,27 @@ from engine.engine import Game
 clients = {}
 game = Game()
 masterAddress = "ws://localhost:3001/ws"
+passphrase = "testipassu1234"
 
 
 def updateAI(): #called every second independently from player actions, updates ai locations
     #game.moveAndRemoveNpcs()
     game.updateSquareCache()
+
+def backUpGameState():
+
+    try:
+        ws = create_connection(masterAddress)
+
+        for player in clients.values():
+            gamestate = game.getGameState(player)
+            print("sent gamestate for", player)
+            name = player
+            message = {"action": "update", "passphrase": passphrase, "name": name, "gamestate": gamestate}
+            ws.send(json.dumps(message))
+    except Exception:
+        print("could not connect to login server to backup gamestate")
+
 
 class Root(tornado.web.RequestHandler):
     def get(self):
@@ -238,8 +254,7 @@ class Controls(tornado.websocket.WebSocketHandler):
             name = clients[self]
 
             ws = create_connection(masterAddress)
-            passphrase = "testipassu1234"
-            message = {"action": "logout", "passphrase": "testipassu1234", "name": name, "gamestate": gamestate}
+            message = {"action": "logout", "passphrase": passphrase, "name": name, "gamestate": gamestate}
             ws.send(json.dumps(message))
 
 
@@ -278,6 +293,9 @@ if __name__ == "__main__":
     app = make_app()
     app.listen(8888)
     AITimer_ = tornado.ioloop.PeriodicCallback(updateAI, 1000, jitter=0)
+    backUpTimer = tornado.ioloop.PeriodicCallback(backUpGameState, 600000, jitter=0)
+
     AITimer_.start()
+    backUpTimer.start()
 
     tornado.ioloop.IOLoop.current().start()

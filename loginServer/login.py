@@ -4,7 +4,7 @@ import tornado.ioloop
 import tornado.web
 import psycopg2
 import json
-
+import time
 
 
 connection = psycopg2.connect(user = "mmo",
@@ -78,7 +78,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
 
 
                 #store gamestate for backup
-                if (parsed_msg["action"] == "update" and "gamestate" in parsed_msg):
+                if (parsed_msg["action"] == "update" and "name" in parsed_msg and "gamestate" in parsed_msg):
                 #query =  "INSERT INTO mmo (name, password, gamestate) VALUES (%s, %s, %s);"
 
                     query = "UPDATE mmo SET gamestate = %s WHERE name = %s";
@@ -86,6 +86,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     cursor.execute(query, data)
                     connection.commit()
 
+                    playersOnline[parsed_msg["name"]] = time.time()
 
 
 
@@ -110,7 +111,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
                         else:
                             userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
                             self.ws_connection.write_message(json.dumps(userdata2))
-                            playersOnline[name] = 1
+                            playersOnline[name] = time.time()
                             #state = json.loads(userdata[0][1])
 
             else:
