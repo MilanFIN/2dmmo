@@ -14,7 +14,7 @@ connection = psycopg2.connect(user = "mmo",
                               database = "postgres")
 cursor = connection.cursor()
 
-defaultLoadout = {"worldx":0, "worldy":0, "x":0, "y":0, "gold":10, "bankGold":0}
+defaultLoadout = {"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
 playersOnline = {}
 
 

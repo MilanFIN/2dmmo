@@ -95,14 +95,18 @@ class Controls(tornado.websocket.WebSocketHandler):
             ws.send(json.dumps(message))
             result =  ws.recv()
             userData = json.loads(result)
+            print(userData)
             ws.close()
             if (userData["result"] == "login"):
                 #print("Received '%s'" % result)
-                if (parsed_msg["name"] not in clients.values()):
+                if (parsed_msg["name"] not in clients.values() and "name" in userData):
                     clients[self] = parsed_msg["name"]
-                    #print(clients)
-                    game.addPlayer(parsed_msg["name"])
-                    #print(parsed_msg["name"] + " registered")
+
+
+                    #game.addPlayer(parsed_msg["name"])
+
+                    game.addExistingPlayer(userData)
+
                     self.timer_ = tornado.ioloop.PeriodicCallback(self.updateClient, 200, jitter=0)
 
                     self.timer_.start()

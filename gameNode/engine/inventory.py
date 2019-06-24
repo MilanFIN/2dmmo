@@ -10,6 +10,13 @@ class Inventory:
         self.gold = 0
 
 
+    def setInventory(self, inv):
+        self.items = inv
+    def setGold(self, amt):
+        if (amt >= 0):
+            self.gold = amt
+
+
     def addGold(self, amount):
         self.gold += amount
 
@@ -71,6 +78,10 @@ class playerBank:
 
     def getBalance(self):
         return self.gold
+
+    def setBalance(self, amt):
+        if (amt >= 0):
+            self.gold = amt
 
     def deposit(self, amount):
         self.gold += abs(amount)

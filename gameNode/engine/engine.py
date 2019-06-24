@@ -82,6 +82,45 @@ class Game:
         player = Player(playerName, 0, 0, 10, 10, self.seed, self.squareSize_)
         self.allPlayers_[playerName] = player
 
+
+    def addExistingPlayer(self, userData):
+
+        gameState = userData["gamestate"]
+
+        x = 10
+        y = 10
+        worldx = 0
+        worldy = 0
+        onLand = True
+        inv = {}
+        gold = 10
+        bankGold = 0
+        if ("x" in gameState):
+            x = gameState["x"]
+        if ("y" in gameState):
+            y = gameState["y"]
+        if ("worldx" in gameState):
+            worldx = gameState["worldx"]
+        if ("worldy" in gameState):
+            worldy = gameState["worldy"]
+        if ("onland" in gameState):
+            onLand = gameState["onland"]
+        if ("inventory" in gameState):
+            inv = gameState["inventory"]
+        if ("gold" in gameState):
+            gold = gameState["gold"]
+        if ("bankgold" in gameState):
+            bankGold = gameState["bankgold"]
+
+
+        player = Player(userData["name"], worldx, worldy, x, y, self.seed, self.squareSize_)
+        player.setOnLand(onLand)
+        player.inventory.setInventory(inv)
+        player.inventory.setGold(gold)
+        player.bank.setBalance(bankGold)
+        self.allPlayers_[userData["name"]] = player
+
+
     def removePlayer(self, playerName):
         try:
             del self.allPlayers_[playerName]

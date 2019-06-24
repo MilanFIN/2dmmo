@@ -217,7 +217,7 @@ class Player:
         result["y"] = self.y_
 
         result["gold"] = self.inventory.getGold()
-        result["bankGold"] = self.bank.getBalance()
+        result["bankgold"] = self.bank.getBalance()
 
         result["hp"] = self.hp
         result["onland"] = self.onLand
@@ -281,6 +281,8 @@ class Player:
         #reset hp and empty inventory
         self.hp = self.maxHp
         self.inventory = Inventory()
+    def setOnLand(self, val):
+        self.onLand = val
     def isOnLand(self):
         return self.onLand
     def regenActions(self):
