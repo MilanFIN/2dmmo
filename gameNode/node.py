@@ -126,10 +126,9 @@ class Controls(tornado.websocket.WebSocketHandler):
                     self.timer_ = tornado.ioloop.PeriodicCallback(self.updateClient, 200, jitter=0)
 
                     self.timer_.start()
-                else:
-                    self.write_message({"alert": "Name is already taken."})
             elif (userData["result"] == "error"):
                 print("incorrect username and password")
+                self.write_message({"alert": userData["message"]})
 
 
 

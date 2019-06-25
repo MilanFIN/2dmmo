@@ -113,11 +113,16 @@ class Game:
             bankGold = gameState["bankgold"]
 
 
+
         player = Player(userData["name"], worldx, worldy, x, y, self.seed, self.squareSize_)
         player.setOnLand(onLand)
         player.inventory.setInventory(inv)
         player.inventory.setGold(gold)
         player.bank.setBalance(bankGold)
+
+        if ("hp" in gameState):
+            player.setHp(gameState["hp"])
+
         self.allPlayers_[userData["name"]] = player
 
 

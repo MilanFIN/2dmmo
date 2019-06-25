@@ -16,6 +16,13 @@ cursor = connection.cursor()
 
 defaultLoadout = {"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
 playersOnline = {}
+ClientDropTimeout = 1250000 #25 minutes, getting updates every 10
+
+
+def dropLostClients():
+    for player in playersOnline:
+        if (time.time() - playersOnline[player] > ClientDropTimeout):
+            playersOnline.pop(player, None)
 
 
 class Root(tornado.web.RequestHandler):
@@ -95,29 +102,24 @@ class wshandler(tornado.websocket.WebSocketHandler):
                 elif (parsed_msg["action"] == "login"):
                     name = parsed_msg["name"]
 
-                    if (name in playersOnline):
-                        result = {"result": "error", "message": "already logged in"}
+
+                    passwd = parsed_msg["password"]
+                    query = "SELECT name, gamestate FROM mmo WHERE name = %s and password = %s"
+                    data = (name, passwd)
+                    cursor.execute(query, data)
+                    userdata = cursor.fetchall()
+                    #connection.commit()
+                    if (userdata == []):
+                        result = {"result": "error", "message": "Wrong username or password."}
+                        self.ws_connection.write_message(json.dumps(result))
+                    elif (name in playersOnline):
+                        result = {"result": "error", "message": "That user is already logged in."}
                         self.ws_connection.write_message(json.dumps(result))
                     else:
-                        passwd = parsed_msg["password"]
-                        query = "SELECT name, gamestate FROM mmo WHERE name = %s and password = %s"
-                        data = (name, passwd)
-                        cursor.execute(query, data)
-                        userdata = cursor.fetchall()
-                        #connection.commit()
-                        if (userdata == []):
-                            result = {"result": "error", "message": "wrong username or password"}
-                            self.ws_connection.write_message(json.dumps(result))
-                        else:
-                            userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
-                            self.ws_connection.write_message(json.dumps(userdata2))
-                            playersOnline[name] = time.time()
-                            #state = json.loads(userdata[0][1])
-
-            else:
-                result = {"result": "error", "messasge": "not authorized"}
-                self.ws_connection.write_message(json.dumps(result))
-
+                        userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
+                        self.ws_connection.write_message(json.dumps(userdata2))
+                        playersOnline[name] = time.time()
+                        #state = json.loads(userdata[0][1])
 
 
         #query =  "INSERT INTO mmo (name, password, gamestate) VALUES (%s, %s, %s);"
@@ -135,4 +137,8 @@ def make_app():
 if __name__ == "__main__":
     app = make_app()
     app.listen(3001)
+    DropLostTimer = tornado.ioloop.PeriodicCallback(dropLostClients, 600000, jitter=0)
+
+
+    DropLostTimer.start()
     tornado.ioloop.IOLoop.current().start()

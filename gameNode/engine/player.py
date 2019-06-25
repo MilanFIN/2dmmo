@@ -243,6 +243,12 @@ class Player:
         self.acted = self.actionDelay
     def getHp(self):
         return self.hp
+    def setHp(self, hp):
+        if (hp <= self.maxHp and hp >= 0):
+            self.hp = hp
+        else:
+            self.hp = self.maxHp
+
     def fight(self):
         self.inFight = self.fightTime
     def fighting(self):
