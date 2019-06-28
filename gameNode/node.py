@@ -2,6 +2,8 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import json
+import os
+
 from websocket import create_connection
 
 from engine.engine import Game
@@ -12,7 +14,7 @@ from engine.engine import Game
 
 clients = {}
 game = Game()
-masterAddress = "ws://localhost:3001/ws"
+masterAddress = "wss://asdf.dy.fi:3001/ws"
 passphrase = "testipassu1234"
 
 
@@ -290,7 +292,17 @@ def make_app():
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(8888)
+
+    http_server = tornado.httpserver.HTTPServer(app,
+                                                ssl_options = {
+                                                    "certfile": os.path.join("certs/domain-crt.txt"),
+                                                    "keyfile": os.path.join("certs/domain-key.txt"),
+    })
+    http_server.listen(8888)
+
+
+
+    #app.listen(8888)
     AITimer_ = tornado.ioloop.PeriodicCallback(updateAI, 1000, jitter=0)
     backUpTimer = tornado.ioloop.PeriodicCallback(backUpGameState, 600000, jitter=0)
 

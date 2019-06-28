@@ -5,6 +5,9 @@ import tornado.web
 import psycopg2
 import json
 import time
+import os
+
+
 
 
 connection = psycopg2.connect(user = "mmo",
@@ -17,6 +20,7 @@ cursor = connection.cursor()
 defaultLoadout = {"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
 playersOnline = {}
 ClientDropTimeout = 1250000 #25 minutes, getting updates every 10
+
 
 
 def dropLostClients():
@@ -136,7 +140,12 @@ def make_app():
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(3001)
+    http_server = tornado.httpserver.HTTPServer(app,
+                                                ssl_options = {
+                                                    "certfile": os.path.join("certs/domain-crt.txt"),
+                                                    "keyfile": os.path.join("certs/domain-key.txt"),
+    })
+    http_server.listen(3001)
     DropLostTimer = tornado.ioloop.PeriodicCallback(dropLostClients, 600000, jitter=0)
 
 
