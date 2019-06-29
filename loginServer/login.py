@@ -6,7 +6,7 @@ import psycopg2
 import json
 import time
 import os
-
+from argon2 import PasswordHasher
 
 
 
@@ -16,6 +16,8 @@ connection = psycopg2.connect(user = "mmo",
                               port = "5432",
                               database = "postgres")
 cursor = connection.cursor()
+
+ph = PasswordHasher()
 
 defaultLoadout = {"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
 playersOnline = {}
@@ -57,6 +59,8 @@ class wshandler(tornado.websocket.WebSocketHandler):
                 else:
                     name = parsed_msg["name"]
                     passwd = parsed_msg["password"]
+                    passwd = ph.hash(passwd)
+
                     gst = defaultLoadout
                     gamestate = json.dumps(gst)
                     query =  "INSERT INTO mmo (name, password, gamestate) VALUES (%s, %s, %s);"
@@ -108,6 +112,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
 
 
                     passwd = parsed_msg["password"]
+                    passwd = ph.hash(passwd)
                     query = "SELECT name, gamestate FROM mmo WHERE name = %s and password = %s"
                     data = (name, passwd)
                     cursor.execute(query, data)
