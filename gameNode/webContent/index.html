@@ -13,7 +13,12 @@
     var lastActionTimeStamp = +new Date();
     var actionDelay = 50; //min time between actions in milliseconds
 
+    var loggedIn = false;
+
+
     controlSocket.onmessage = function (evt) {
+
+
         var data = JSON.parse(evt.data);
 
 
@@ -21,6 +26,14 @@
             alert(data.alert);
         }
         else {
+
+            if (loggedIn === false) {
+                document.getElementById("gameView").style.display='block';
+                document.getElementById("loginView").style.display='none';
+
+                loggedIn = true;
+            }
+
 
             document.getElementById('map').innerHTML = "<br>";
 
@@ -491,41 +504,52 @@
 <body>
 
 
-
-    <div id="map" class="map">
-        <input id="playerName" type="text" name="playerName" placeholder="username">
-        <input id="password" type="text" name="password" placeholder="password">
+    <div id="loginView">
+        <input id="playerName" type="text" name="playerName" placeholder="username"> <br>
+        <input id="password" type="password" name="password" placeholder="password"> <br>
 
         <button onclick="login()">Login</button>
-
-        map goes here when aquired</div>
-
-    <div id="chat" class="chat">chat: <br>
-        <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
-        <button onclick="sendMessage()">Send</button>
-
-        <ul id="chatMessages" style="list-style-type:none;">
-            <li>temp</li>
-        </ul>
-    </div>
-    <div id="hp" class="hp">
-
     </div>
 
-    <div id="inventory" class="inventory">
 
-    </div>
 
-    <div id="info" class="info">
-        <div id="dynamicInfo" class="info"></div>
+    <div id="gameView" style="display: none;">
+
+        <div id="map" class="map">
+
+
+            map goes here when aquired</div>
+
+        <div id="chat" class="chat">chat: <br>
+            <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
+            <button onclick="sendMessage()">Send</button>
+
+            <ul id="chatMessages" style="list-style-type:none;">
+                <li>temp</li>
+            </ul>
+        </div>
+        <div id="hp" class="hp">
+
+        </div>
+
+        <div id="inventory" class="inventory">
+
+        </div>
+
+        <div id="info" class="info">
+            <div id="dynamicInfo" class="info"></div>
+            <br>
+            <div id="staticInfo" class="info"></div>
+
+        </div>
         <br>
-        <div id="staticInfo" class="info"></div>
+        <div id="wear" class="wear">
+            <div id="wearInfo" class="wearInfo"></div>
+            <button onclick="unWearAll()">reset wear</button>
+        </div>
+
 
     </div>
-    <br>
-    <div id="wear" class="wear">
-        <div id="wearInfo" class="wearInfo"></div>
-        <button onclick="unWearAll()">reset wear</button>
-    </div>
+
 </body>
 </html>

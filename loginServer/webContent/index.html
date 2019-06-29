@@ -18,6 +18,13 @@
         }
 
         function register(){
+
+            if (document.getElementById("password").value != document.getElementById("password2").value) {
+                alert("passwords don't match");
+                return;
+            }
+
+
             var jiison = { "action": "register", "name": document.getElementById("name").value, "password": document.getElementById("password").value};
             var payload = JSON.stringify(jiison);
             socket.send(payload);
@@ -32,7 +39,9 @@
 
     <div id="register" class="register">register: <br>
         <input id="name" type="text" name="name" placeholder="Username"> <br>
-        <input id="password" type="text" name="password" placeholder="Password"> <br>
+        <input id="password" type="password" name="password" placeholder="Password"> <br>
+        <input id="password2" type="password" name="password" placeholder="Repeat Password"> <br>
+
         <button onclick="register()">Register</button>
     </div>
 
