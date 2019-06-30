@@ -49,6 +49,16 @@ class wshandler(tornado.websocket.WebSocketHandler):
         if (parsed_msg["action"] == "register"):
             if ("name" in parsed_msg and "password" in parsed_msg):
 
+                if (len(parsed_msg["name"]) > 50):
+                    self.write_message({"result": "error", "message": "username is too long"})
+                    return
+                if (len(parsed_msg["password"]) < 8):
+                    self.write_message({"result": "error", "message": "password must be atleast 8 characters long"})
+                    return
+
+
+
+
                 checkQuery = "SELECT name FROM mmo WHERE name = %s and %s = %s"
                 data = (parsed_msg["name"], "s", "s")
                 cursor.execute(checkQuery, data)
@@ -60,6 +70,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     name = parsed_msg["name"]
                     passwd = parsed_msg["password"]
                     passwd = ph.hash(passwd)
+
 
                     gst = defaultLoadout
                     gamestate = json.dumps(gst)
@@ -112,9 +123,8 @@ class wshandler(tornado.websocket.WebSocketHandler):
 
 
                     passwd = parsed_msg["password"]
-                    passwd = ph.hash(passwd)
-                    query = "SELECT name, gamestate FROM mmo WHERE name = %s and password = %s"
-                    data = (name, passwd)
+                    query = "SELECT name, gamestate, password FROM mmo WHERE name = %s and %s = %s"
+                    data = (name, "s", "s")
                     cursor.execute(query, data)
                     userdata = cursor.fetchall()
                     #connection.commit()
@@ -125,9 +135,20 @@ class wshandler(tornado.websocket.WebSocketHandler):
                         result = {"result": "error", "message": "That user is already logged in."}
                         self.ws_connection.write_message(json.dumps(result))
                     else:
-                        userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
-                        self.ws_connection.write_message(json.dumps(userdata2))
-                        playersOnline[name] = time.time()
+                        name = userdata[0][0]
+                        gamestate = userdata[0][1]
+                        pwhash = userdata[0][2]
+
+                        try:
+                            ph.verify(pwhash, passwd)
+
+                            userdata2 = {"result": "login", "name": userdata[0][0], "gamestate":userdata[0][1]}
+                            self.ws_connection.write_message(json.dumps(userdata2))
+                            playersOnline[name] = time.time()
+                        except Exception:
+                            result = {"result": "error", "message": "Wrong username or password."}
+                            self.ws_connection.write_message(json.dumps(result))
+
                         #state = json.loads(userdata[0][1])
 
 
