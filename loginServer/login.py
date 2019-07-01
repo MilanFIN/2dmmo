@@ -49,11 +49,11 @@ class wshandler(tornado.websocket.WebSocketHandler):
         if (parsed_msg["action"] == "register"):
             if ("name" in parsed_msg and "password" in parsed_msg):
 
-                if (len(parsed_msg["name"]) > 50):
-                    self.write_message({"result": "error", "message": "username is too long"})
+                if (len(parsed_msg["name"]) > 50 or len(parsed_msg["name"]) < 1):
+                    self.write_message({"result": "error", "message": "username is too long or short"})
                     return
-                if (len(parsed_msg["password"]) < 8):
-                    self.write_message({"result": "error", "message": "password must be atleast 8 characters long"})
+                if (len(parsed_msg["password"]) < 8 or len(parsed_msg["password"]) > 50):
+                    self.write_message({"result": "error", "message": "password must be between 8 and 50 characters long"})
                     return
 
 
