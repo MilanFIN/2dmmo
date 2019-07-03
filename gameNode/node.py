@@ -3,24 +3,57 @@ import tornado.web
 import tornado.websocket
 import json
 import os
-
+import threading
+from time import sleep
 from websocket import create_connection
 
 from engine.engine import Game
 
 
+clientSendLock = threading.Lock()
 
+masterSendQueLock = threading.Lock()
+masterSendQue = []
 
+alertsLock = threading.Lock()
+alerts = []
 
+loggedPlayersLock = threading.Lock()
+loggedPlayers = []
+
+clientsLock = threading.Lock()
 clients = {}
 game = Game()
 masterAddress = "wss://asdf.dy.fi:3001/ws"
 passphrase = "testipassu1234"
 
 
+
+
+
 def updateAI(): #called every second independently from player actions, updates ai locations
     #game.moveAndRemoveNpcs()
     game.updateSquareCache()
+
+
+
+    with alertsLock:
+        #print(alerts[i][0])
+        for alert in alerts:
+            alert[1].write_message(alert[0])
+        alerts.clear()
+
+    with loggedPlayersLock:
+        with clientsLock:
+            for plr in loggedPlayers:
+                destination = plr[1]
+                userData = plr[0]
+                clients[destination] = userData["name"]
+                game.addExistingPlayer(userData)
+                destination.timer_ = tornado.ioloop.PeriodicCallback(destination.updateClient, 200, jitter=0)
+                destination.timer_.start()
+            loggedPlayers.clear()
+
 
 def backUpGameState():
 
@@ -42,6 +75,41 @@ class Root(tornado.web.RequestHandler):
         self.render("webContent/index.html")
 
 class Controls(tornado.websocket.WebSocketHandler):
+
+
+    def masterConnection():
+        while True:
+            if (len(masterSendQue) == 0):
+                sleep(1)
+            else:
+                message, destination = ("", "")
+                with masterSendQueLock:
+
+                    print(masterSendQue)
+
+
+                    message, destination = masterSendQue[0]
+                    masterSendQue.pop(0)
+                ws = create_connection(masterAddress)
+                ws.send(json.dumps(message))
+                result =  ws.recv()
+                userData = json.loads(result)
+                print(userData)
+                ws.close()
+                if (userData["result"] == "login"):
+                    #print("Received '%s'" % result)
+                    with clientsLock:
+                        if ("name" in userData):
+                            if (userData["name"] not in clients.values()):
+                                with loggedPlayersLock:
+                                    loggedPlayers.append((userData, destination))
+
+                elif (userData["result"] == "error"):
+                    print("incorrect username and password")
+                    with alertsLock:
+                        result = ({"alert": userData["message"]}, destination)
+                        alerts.append(result)
+                        #destination.write_message({"alert": userData["message"]})
 
 
     def open(self):
@@ -90,12 +158,11 @@ class Controls(tornado.websocket.WebSocketHandler):
 
         wear = game.getWear(clients[self])
 
-
         self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs,
                             "inventory": items, "infoType": infoType, "sellInfo": sellInfo,
                              "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets,
                               "tradeOffer": tradeOffer, "textInfo": textInfo , "wear": wear, "tradeItems": tradeItems})
-        # self.write_message(json.dumps(xyMap))
+
 
 
     def on_message(self, message):
@@ -105,11 +172,18 @@ class Controls(tornado.websocket.WebSocketHandler):
 
         if (parsed_msg["action"] == "login"):
 
-            ws = create_connection(masterAddress)
+
+            #ws = create_connection(masterAddress)
             name = parsed_msg["name"]
             password = parsed_msg["password"]
             passphrase = "testipassu1234"
             message = {"action": "login", "passphrase": "testipassu1234", "name": name, "password": password}
+
+            with masterSendQueLock:
+                masterSendQue.append((message, self))
+
+
+            """
             ws.send(json.dumps(message))
             result =  ws.recv()
             userData = json.loads(result)
@@ -131,7 +205,7 @@ class Controls(tornado.websocket.WebSocketHandler):
             elif (userData["result"] == "error"):
                 print("incorrect username and password")
                 self.write_message({"alert": userData["message"]})
-
+            """
 
 
         if (parsed_msg["action"] == "moveRight"):
@@ -248,33 +322,33 @@ class Controls(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
 
+        with clientsLock:
+            if (self in clients):
+                gamestate = game.getGameState(clients[self])#json.dumps(game.getGameState(clients[self]))
+                print(gamestate)
+                name = clients[self]
 
-        if (self in clients):
-            gamestate = game.getGameState(clients[self])#json.dumps(game.getGameState(clients[self]))
-            print(gamestate)
-            name = clients[self]
-
-            ws = create_connection(masterAddress)
-            message = {"action": "logout", "passphrase": passphrase, "name": name, "gamestate": gamestate}
-            ws.send(json.dumps(message))
+                ws = create_connection(masterAddress)
+                message = {"action": "logout", "passphrase": passphrase, "name": name, "gamestate": gamestate}
+                ws.send(json.dumps(message))
 
 
 
-        try:
-            game.removePlayer(clients[self])
-        except Exception:
-            pass
+            try:
+                game.removePlayer(clients[self])
+            except Exception:
+                pass
 
-        try:
-            del clients[self]
-            print("Player left")
-        except KeyError:
-            print("Player left, but nobody cares as they never registered")
+            try:
+                del clients[self]
+                print("Player left")
+            except KeyError:
+                print("Player left, but nobody cares as they never registered")
 
-        try:
-            self.timer_.stop()
-        except Exception:
-            pass #timer never existed
+            try:
+                self.timer_.stop()
+            except Exception:
+                pass #timer never existed
 
 
 
@@ -309,4 +383,8 @@ if __name__ == "__main__":
     AITimer_.start()
     backUpTimer.start()
 
+    t1 = threading.Thread(target=Controls.masterConnection, args = ())
+    t1.start()
+
     tornado.ioloop.IOLoop.current().start()
+    t1.join()
