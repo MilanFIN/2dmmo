@@ -63,6 +63,13 @@ class Servers(tornado.web.RequestHandler):
 
 class wshandler(tornado.websocket.WebSocketHandler):
 
+
+    def check_origin(self, origin):
+        return True
+
+
+
+
     def open(self):
         pass
     def on_message(self, message):

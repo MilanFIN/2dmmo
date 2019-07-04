@@ -82,7 +82,8 @@ def backUpGameState():
 def sendPlayerCount():
     ws = create_connection(masterAddress)
     with clientsLock:
-        message = {"action": "serverStatus", "passphrase": passphrase, "nodeName": nodeName, "nodeAddress": nodeAddress, "playerCount": len(clients)}
+        count = str(len(clients)) + "/" + str(maxPlayers)
+        message = {"action": "serverStatus", "passphrase": passphrase, "nodeName": nodeName, "nodeAddress": nodeAddress, "playerCount": count}
         ws.send(json.dumps(message))
 
 
@@ -127,6 +128,11 @@ class Controls(tornado.websocket.WebSocketHandler):
                         result = ({"alert": userData["message"]}, destination)
                         alerts.append(result)
                         #destination.write_message({"alert": userData["message"]})
+
+
+    def check_origin(self, origin):
+        return True
+
 
 
     def open(self):
