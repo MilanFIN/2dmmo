@@ -332,6 +332,11 @@ class Controls(tornado.websocket.WebSocketHandler):
                 message = {"action": "logout", "passphrase": passphrase, "name": name, "gamestate": gamestate}
                 ws.send(json.dumps(message))
 
+        with loggedPlayersLock:
+            for plr in loggedPlayers:
+                if (plr[1] == self):
+                    a.remove(plr)
+
 
 
             try:
