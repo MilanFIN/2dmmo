@@ -21,20 +21,44 @@ ph = PasswordHasher()
 
 defaultLoadout = {"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
 playersOnline = {}
+nodes = {} #(name, playerCount, current), current is the time it was updated
+nodeDropTimeout = 60000
 ClientDropTimeout = 1250000 #25 minutes, getting updates every 10
-
+masterPass = "testipassu1234"
 
 
 def dropLostClients():
+    global playersOnline
+    newPlayersOnline = {}
     for player in playersOnline:
-        if (time.time() - playersOnline[player] > ClientDropTimeout):
-            playersOnline.pop(player, None)
+        if (time.time() - playersOnline[player] <= ClientDropTimeout):
+            newPlayersOnline[player] = playersOnline[player]
+    playersOnline = newPlayersOnline
+
+def dropLostNodes():
+    global nodes
+    print(nodes)
+    newNodes = {}
+    for node in nodes:
+        if (time.time() - nodes[node][2] <= nodeDropTimeout):
+            newNodes[node] = nodes[node]
+    nodes = newNodes
+
 
 
 class Root(tornado.web.RequestHandler):
     def get(self):
         self.render("webContent/index.html")
 
+
+class Servers(tornado.web.RequestHandler):
+    def get(self):
+
+        servers = []
+        for node in nodes:
+            servers.append({"address": node, "name": nodes[node][0], "playerCount": nodes[node][1]})
+        result = {"servers": servers}
+        self.write(result)
 
 
 class wshandler(tornado.websocket.WebSocketHandler):
@@ -43,6 +67,8 @@ class wshandler(tornado.websocket.WebSocketHandler):
         pass
     def on_message(self, message):
         parsed_msg = json.loads(message)
+
+
 
 
         #register request is made by the browser and as such doesn't require authorization
@@ -86,7 +112,18 @@ class wshandler(tornado.websocket.WebSocketHandler):
         if ("passphrase" in parsed_msg):
 
 
-            if (parsed_msg["passphrase"] == "testipassu1234"):
+            if (parsed_msg["passphrase"] == masterPass):
+
+
+                if (parsed_msg["action"] == "serverStatus" and  "nodeName" in parsed_msg and "nodeAddress" in parsed_msg and "playerCount" in parsed_msg):
+                    current = time.time()
+                    name = parsed_msg["nodeName"]
+                    address = parsed_msg["nodeAddress"]
+                    plrCount = parsed_msg["playerCount"]
+
+                    nodes[address] = (name, plrCount, current)
+
+
 
                 #logout, store gamestate and remove player from known online players
                 if (parsed_msg["action"] == "logout" and "name" in parsed_msg and "gamestate" in parsed_msg):
@@ -159,6 +196,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
 def make_app():
     return tornado.web.Application([
         (r"/", Root),
+        (r"/servers", Servers),
         (r"/ws", wshandler),
 
         #(r"/", MainHandler),
@@ -173,7 +211,8 @@ if __name__ == "__main__":
     })
     http_server.listen(3001)
     DropLostTimer = tornado.ioloop.PeriodicCallback(dropLostClients, 600000, jitter=0)
-
+    DropLostNodesTimer = tornado.ioloop.PeriodicCallback(dropLostNodes, 60000, jitter=0)
 
     DropLostTimer.start()
+    DropLostNodesTimer.start()
     tornado.ioloop.IOLoop.current().start()

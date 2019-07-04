@@ -24,8 +24,13 @@ loggedPlayers = []
 clientsLock = threading.Lock()
 clients = {}
 game = Game()
+
+
 masterAddress = "wss://asdf.dy.fi:3001/ws"
 passphrase = "testipassu1234"
+nodeName = "Finland 1"
+nodeAddress = "https://www.asdf.dy.fi:8888"
+maxPlayers = 300
 
 
 
@@ -48,10 +53,15 @@ def updateAI(): #called every second independently from player actions, updates 
             for plr in loggedPlayers:
                 destination = plr[1]
                 userData = plr[0]
-                clients[destination] = userData["name"]
-                game.addExistingPlayer(userData)
-                destination.timer_ = tornado.ioloop.PeriodicCallback(destination.updateClient, 200, jitter=0)
-                destination.timer_.start()
+                if (len(clients) < maxPlayers):
+                    clients[destination] = userData["name"]
+                    game.addExistingPlayer(userData)
+                    destination.timer_ = tornado.ioloop.PeriodicCallback(destination.updateClient, 200, jitter=0)
+                    destination.timer_.start()
+                else:
+                    message = {"alert": "Server is full"}
+                    destination.write_message(json.dumps(message))
+
             loggedPlayers.clear()
 
 
@@ -68,6 +78,13 @@ def backUpGameState():
             ws.send(json.dumps(message))
     except Exception:
         print("could not connect to login server to backup gamestate")
+
+def sendPlayerCount():
+    ws = create_connection(masterAddress)
+    with clientsLock:
+        message = {"action": "serverStatus", "passphrase": passphrase, "nodeName": nodeName, "nodeAddress": nodeAddress, "playerCount": len(clients)}
+        ws.send(json.dumps(message))
+
 
 
 class Root(tornado.web.RequestHandler):
@@ -384,9 +401,11 @@ if __name__ == "__main__":
     #app.listen(8888)
     AITimer_ = tornado.ioloop.PeriodicCallback(updateAI, 1000, jitter=0)
     backUpTimer = tornado.ioloop.PeriodicCallback(backUpGameState, 600000, jitter=0)
+    playerCountUpdateTimer = tornado.ioloop.PeriodicCallback(sendPlayerCount, 15000, jitter=0)
 
     AITimer_.start()
     backUpTimer.start()
+    playerCountUpdateTimer.start()
 
     t1 = threading.Thread(target=Controls.masterConnection, args = ())
     t1.start()

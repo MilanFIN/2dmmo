@@ -2,7 +2,12 @@
 <html>
 
 <head>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
+
+
+
         var socket = new WebSocket("wss://asdf.dy.fi:3001/ws");
 
         socket.onmessage = function (evt) {
@@ -31,6 +36,21 @@
 
         }
 
+
+        $.get(
+            "servers",
+            {},
+            function(data) {
+                console.log(data["servers"]);
+
+                data["servers"].forEach(function (item, index) {
+                      console.log(item, index);
+                    document.getElementById('serverList').innerHTML += item["address"] + " " + item["name"] + " " + item["playerCount"] + "<br>"
+                });
+
+            }
+        );
+
     </script>
 </head>
 
@@ -43,6 +63,12 @@
         <input id="password2" type="password" name="password" placeholder="Repeat Password"> <br>
 
         <button onclick="register()">Register</button>
+    </div>
+
+    <br>
+
+    <div id="serverList" class="serverList">
+        Server info: <br>
     </div>
 
 </body>
