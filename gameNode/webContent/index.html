@@ -4,8 +4,17 @@
    <title>MMO RPG</title>
     <link rel="stylesheet" href="style.css">
 
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
     <script>
 
+
+
+
+
+    tileSet = new Image();
+    tileSet.src = 'https://asdf.dy.fi:8888/tileset.png';
 
     var controlSocket = new WebSocket("wss://asdf.dy.fi:8888/controls");
     var allChatMessages = [];
@@ -43,7 +52,6 @@
                 document.getElementById('map').innerHTML += mapArea + "<br>";
             }
 
-            console.log(data.objects);
             for (var i = 0; i < data.objects.length; i++) {
                 var mapArea = data.objects[i].join("");
                 mapArea = mapArea.replace(/\./g,'&nbsp;')
