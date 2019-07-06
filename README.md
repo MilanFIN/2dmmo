@@ -12,13 +12,12 @@ The world is "round" and populated by islands with npc characters on them.
 - Storing earned money to banks
 - A wear system, including armor, ships and weapons
 - Adding additional items, resources, enemies, npcs is easy with the config file
+- Multiple servernode support and a centralized login server with database connection to save gamestate
 
 
 
 ### in progress
-- saving gamestate to a database
-- multiple server support, all of which connect to a central database to sync player progress between servers
-
+- graphics
 
 ### todo
 - weapons for ships
