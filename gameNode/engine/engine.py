@@ -20,10 +20,6 @@ TODO:
 
 
 
-#1 pelaaja tekee 2:lle tarjouksen, jos 2 declinee, 1 jää näkyviin choose painike?
-
-
-
 
 
 

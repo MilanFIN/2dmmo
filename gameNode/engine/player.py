@@ -487,7 +487,10 @@ class Player:
         #returns the gamemap the player sees as a 2d array
         #populates the map with all different gameobjects on their right places
 
+        #areatoprint is the maplayer, objectlayer is for objects such as resources and players
         areaToPrint = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
+        objectLayer = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
+
         self.neightbors_ = []
 
 
@@ -529,47 +532,49 @@ class Player:
                 for x in range(self.squareSize_):
                     areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x + self.squareSize_ * 2] = right[y][x]
 
+
+
         #trees
         for y in range(-1, 2):
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in trees):
                     for tree in trees[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
 
         #shops
         for y in range(-1, 2):
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in shops):
                     for shop in shops[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + shop.getY()][x * self.squareSize_ + self.squareSize_ + shop.getX()] = shop.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + shop.getY()][x * self.squareSize_ + self.squareSize_ + shop.getX()] = shop.getCharacter()
 
         #banks
         for y in range(-1, 2):
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in banks):
                     for bank in banks[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + bank.getY()][x * self.squareSize_ + self.squareSize_ + bank.getX()] = bank.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + bank.getY()][x * self.squareSize_ + self.squareSize_ + bank.getX()] = bank.getCharacter()
 
         #hospitals
         for y in range(-1, 2):
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in hospitals):
                     for hosp in hospitals[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + hosp.getY()][x * self.squareSize_ + self.squareSize_ + hosp.getX()] = hosp.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + hosp.getY()][x * self.squareSize_ + self.squareSize_ + hosp.getX()] = hosp.getCharacter()
 
         #harbors
         for y in range(-1, 2):
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in harbors):
                     for harbor in harbors[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + harbor.getY()][x * self.squareSize_ + self.squareSize_ + harbor.getX()] = harbor.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + harbor.getY()][x * self.squareSize_ + self.squareSize_ + harbor.getX()] = harbor.getCharacter()
 
         #npcs
         for y in range(-1, 2):
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in npcs):
                     for npc in npcs[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
 
 
         #monsters
@@ -577,7 +582,7 @@ class Player:
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in monsters):
                     for monster in monsters[(self.worldX_ + x, self.worldY_ + y)]:
-                        areaToPrint[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
 
 
         #draw other players
@@ -594,7 +599,7 @@ class Player:
                     if (value.getName() != self.name_):
                         xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
                         yloc = worldy - self.worldY_ + 1
-                        areaToPrint[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.others
+                        objectLayer[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.others
                         self.neightbors_.append(value.getName())
 
 
@@ -605,6 +610,6 @@ class Player:
         y = self.y_
         xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
         yloc = self.worldY_ - worldy + 1
-        areaToPrint[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.character
+        objectLayer[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.character
 
-        return areaToPrint
+        return areaToPrint, objectLayer

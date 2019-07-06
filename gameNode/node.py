@@ -141,7 +141,7 @@ class Controls(tornado.websocket.WebSocketHandler):
     def updateClient(self): #called every tick, updates player with content
         game.allowMoving(clients[self])
 
-        xyMap = game.printGameState(clients[self])
+        xyMap, objectLayer = game.printGameState(clients[self])
 
         hp = game.getPlayerHp(clients[self])
 
@@ -181,7 +181,7 @@ class Controls(tornado.websocket.WebSocketHandler):
 
         wear = game.getWear(clients[self])
 
-        self.write_message({"map": xyMap, "size": size, "hp": hp, "messages": msgs,
+        self.write_message({"map": xyMap, "objects": objectLayer, "size": size, "hp": hp, "messages": msgs,
                             "inventory": items, "infoType": infoType, "sellInfo": sellInfo,
                              "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets,
                               "tradeOffer": tradeOffer, "textInfo": textInfo , "wear": wear, "tradeItems": tradeItems})

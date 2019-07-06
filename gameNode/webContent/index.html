@@ -38,10 +38,18 @@
             document.getElementById('map').innerHTML = "<br>";
 
             for (var i = 0; i < data.map.length; i++) {
-                mapArea = data.map[i].join("");
+                var mapArea = data.map[i].join("");
                 mapArea = mapArea.replace(/\./g,'&nbsp;')
                 document.getElementById('map').innerHTML += mapArea + "<br>";
             }
+
+            console.log(data.objects);
+            for (var i = 0; i < data.objects.length; i++) {
+                var mapArea = data.objects[i].join("");
+                mapArea = mapArea.replace(/\./g,'&nbsp;')
+                document.getElementById('map').innerHTML += mapArea + "<br>";
+            }
+
             //TÄSSÄ PITÄÄ POPULOIDA JOKU LISTA MESSAGEITA JOSTA POISTETAAN JOS TARVII
             if (data.messages.length != 0) {
                 document.getElementById("chatMessages").innerHTML = "";
