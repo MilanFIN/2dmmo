@@ -23,46 +23,49 @@
 
     <div id="gameView" style="display: none;">
 
-    <div id="mapCanvasDiv">
-        <canvas id="mapCanvas" width="480" height="480"></canvas>
+        <div id="mapCanvasDiv">
+            <canvas id="mapCanvas" width="480" height="480"></canvas>
+
+            <div id="mapCanvasDiv" class="layered">
+                <canvas id="mapCanvas" width="480" height="480"></canvas>
+            </div>
+            <div id="objectCanvasDiv" class="layered">
+                <canvas id="objectCanvas" width="480" height="480"></canvas>
 
 
-    </div>
-
-
-        <div id="map" class="map">
-
-
-            map goes here when aquired</div>
-
-        <div id="chat" class="chat">chat: <br>
-            <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
-            <button onclick="sendMessage()">Send</button>
-
-            <ul id="chatMessages" style="list-style-type:none;">
-                <li>temp</li>
-            </ul>
-        </div>
-        <div id="hp" class="hp">
+            </div>
 
         </div>
 
-        <div id="inventory" class="inventory">
+        <div id="misc" class="misc">
+            <div id="chat" class="chat">chat: <br>
+                <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
+                <button onclick="sendMessage()">Send</button>
 
-        </div>
+                <ul id="chatMessages" style="list-style-type:none;">
+                    <li>temp</li>
+                </ul>
+            </div>
+            <div id="hp" class="hp">
 
-        <div id="info" class="info">
-            <div id="dynamicInfo" class="info"></div>
+            </div>
+
+            <div id="inventory" class="inventory">
+
+            </div>
+
+            <div id="info" class="info">
+                <div id="dynamicInfo" class="info"></div>
+                <br>
+                <div id="staticInfo" class="info"></div>
+
+            </div>
             <br>
-            <div id="staticInfo" class="info"></div>
-
+            <div id="wear" class="wear">
+                <div id="wearInfo" class="wearInfo"></div>
+                <button onclick="unWearAll()">reset wear</button>
+            </div>
         </div>
-        <br>
-        <div id="wear" class="wear">
-            <div id="wearInfo" class="wearInfo"></div>
-            <button onclick="unWearAll()">reset wear</button>
-        </div>
-
 
     </div>
 
@@ -76,6 +79,12 @@
 
         tileSet = new Image();
         tileSet.src = 'https://asdf.dy.fi:8888/tileset.png';
+        tileNums = {};
+        $.getJSON('https://asdf.dy.fi:8888/tileNums.json', function(data) {
+            tileNums = data
+        });
+
+
         var canvas = document.getElementById('mapCanvas');
         var ctx = canvas.getContext('2d');
         var tileSize = 8;       // The size of a tile (32×32)
@@ -83,6 +92,8 @@
         var colTileCount = 60;   // The number of tiles in a column of our background
         var imageNumTiles = 1;  // The number of tiles per row in the tileset image
 
+        objectCanvas = document.getElementById('objectCanvas');
+        var objCtx = objectCanvas.getContext('2d');
 
 
 
@@ -114,14 +125,17 @@
                 }
 
 
+
+                ctx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
                 for (var r = 0; r < rowTileCount; r++) {
                     for (var c = 0; c < colTileCount; c++) {
                     var tile = data.map[r][c];
-                    if (tile == "x") {
-                       tile = 0;
+                    if(tileNums.hasOwnProperty(tile)){
+                        tile = tileNums[tile];
                     }
+
                     else {
-                        tile = 1;
+                        tile = 0;
                     }
                       var tileRow = (tile / imageNumTiles) | 0; // Bitwise OR operation
                       var tileCol = (tile % imageNumTiles) | 0;
@@ -130,7 +144,25 @@
                 }
 
 
+                objCtx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
+                for (var r = 0; r < rowTileCount; r++) {
+                    for (var c = 0; c < colTileCount; c++) {
+                    var tile = data.objects[r][c];
+                    if(tileNums.hasOwnProperty(tile)){
+                        tile = tileNums[tile];
+                    }
 
+                    else {
+                        tile = 0;
+                    }
+                      var tileRow = (tile / imageNumTiles) | 0; // Bitwise OR operation
+                      var tileCol = (tile % imageNumTiles) | 0;
+                      objCtx.drawImage(tileSet, (tileCol * tileSize), (tileRow * tileSize), tileSize, tileSize, (c * tileSize), (r * tileSize), tileSize, tileSize);
+                   }
+                }
+
+
+                /*
                 document.getElementById('map').innerHTML = "<br>";
 
                 for (var i = 0; i < data.map.length; i++) {
@@ -144,6 +176,7 @@
                     mapArea = mapArea.replace(/\./g,'&nbsp;')
                     document.getElementById('map').innerHTML += mapArea + "<br>";
                 }
+                */
 
                 //TÄSSÄ PITÄÄ POPULOIDA JOKU LISTA MESSAGEITA JOSTA POISTETAAN JOS TARVII
                 if (data.messages.length != 0) {

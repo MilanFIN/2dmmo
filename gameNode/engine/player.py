@@ -135,6 +135,8 @@ class Player:
         self.others = self.config["player"]["otherPlayer"]
         self.ground = self.config["terrain"]["ground"]
         self.sea = self.config["terrain"]["sea"]
+        self.empty = self.config["terrain"]["empty"]
+
         self.worldSize = int(self.config["terrain"]["worldRadius"])
         self.actionDelay = int(self.config["player"]["actionDelay"])
         self.attack = int(self.config["player"]["attack"])
@@ -489,7 +491,7 @@ class Player:
 
         #areatoprint is the maplayer, objectlayer is for objects such as resources and players
         areaToPrint = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
-        objectLayer = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
+        objectLayer = [[self.empty for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
 
         self.neightbors_ = []
 
