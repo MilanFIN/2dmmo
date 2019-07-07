@@ -7,514 +7,6 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 
-    <script>
-
-
-
-
-
-    tileSet = new Image();
-    tileSet.src = 'https://asdf.dy.fi:8888/tileset.png';
-
-    var controlSocket = new WebSocket("wss://asdf.dy.fi:8888/controls");
-    var allChatMessages = [];
-    var prevInfo = "";
-    var lastActionTimeStamp = +new Date();
-    var actionDelay = 50; //min time between actions in milliseconds
-
-    var loggedIn = false;
-
-
-    controlSocket.onmessage = function (evt) {
-
-
-        var data = JSON.parse(evt.data);
-
-
-        if (data.hasOwnProperty("alert")) {
-            alert(data.alert);
-        }
-        else {
-
-            if (loggedIn === false) {
-                document.getElementById("gameView").style.display='block';
-                document.getElementById("loginView").style.display='none';
-
-                loggedIn = true;
-            }
-
-
-            document.getElementById('map').innerHTML = "<br>";
-
-            for (var i = 0; i < data.map.length; i++) {
-                var mapArea = data.map[i].join("");
-                mapArea = mapArea.replace(/\./g,'&nbsp;')
-                document.getElementById('map').innerHTML += mapArea + "<br>";
-            }
-
-            for (var i = 0; i < data.objects.length; i++) {
-                var mapArea = data.objects[i].join("");
-                mapArea = mapArea.replace(/\./g,'&nbsp;')
-                document.getElementById('map').innerHTML += mapArea + "<br>";
-            }
-
-            //TÄSSÄ PITÄÄ POPULOIDA JOKU LISTA MESSAGEITA JOSTA POISTETAAN JOS TARVII
-            if (data.messages.length != 0) {
-                document.getElementById("chatMessages").innerHTML = "";
-                var list = document.getElementById("chatMessages")
-                for (var i = 0; i < data.messages.length; i++) {
-
-                    if (allChatMessages.length >= 5) {
-                        allChatMessages.shift();
-                    };
-                    allChatMessages.push(data.messages[i])
-
-                }
-                for (var i = 0; i < allChatMessages.length; i++) {
-                    // Create the list item:
-                    var item = document.createElement("LI");                 // Create a <li> node
-                    var text = document.createTextNode(allChatMessages[i]);         // Create a text node
-                    item.appendChild(text);                              // Append the text to <li>
-                    document.getElementById("chatMessages").appendChild(item);     //
-                };
-
-            };
-
-            infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.textInfo)  + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
-            if (infoData != prevInfo) {
-                //add new span to update static info, and another for buttons only updated once per change
-                prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
-                document.getElementById("info").innerHTML = "shop/bank info goes here"
-                if (data.infoType == "shop"){
-                    document.getElementById("info").innerHTML = "Item: sellvalue <br>"
-
-                    for (var item in data.sellInfo) {
-                        if (data.sellInfo.hasOwnProperty(item)) {
-                            var button = "<button type='button' onclick=sellItem('"+item+"');>sell</button>";
-                            document.getElementById("info").innerHTML += item + ": " + data.sellInfo[item] + button +"<br>";
-
-                        }
-                    }
-                    document.getElementById("info").innerHTML += "Item: buyvalue <br>"
-                    for (var item in data.buyInfo) {
-                        if (data.buyInfo.hasOwnProperty(item)) {
-                            var button = "<button type='button' onclick=buyItem('"+item+"');>Buy</button>";
-                            document.getElementById("info").innerHTML += item + ": " + data.buyInfo[item] + button +"<br>";
-
-                        }
-                    }
-                }
-
-                if (data.infoType == "bank"){
-                    document.getElementById("info").innerHTML = "Bank balance: " + data.bankBalance + "<br>";
-                    var button0 = "<button type='button' onclick=deposit();>deposit</button>";
-                    var button1 = "<button type='button' onclick=withDraw();>withdraw</button>";
-
-                    document.getElementById("info").innerHTML += button0 + " " + button1 +"<br>";
-                }
-
-                if (data.infoType == "chooseTradeTarget"){
-                    document.getElementById("info").innerHTML = "Choose trade target: "+ "<br>";
-
-                    for (var opponent in data.tradeTargets) {
-                        if (data.tradeTargets.hasOwnProperty(opponent)) {
-                            var button = "<button type='button' onclick=offerTrade('"+data.tradeTargets[opponent]+"');>Choose</button>";
-                            document.getElementById("info").innerHTML += data.tradeTargets[opponent] +" "+ button +"<br>";
-                        }
-                    }
-                }
-
-                if (data.infoType == "tradeOffer"){
-                    document.getElementById("info").innerHTML = data.tradeOffer + "<br>Wants to trade with you. <br>";
-                    var button0 = "<button type='button' onclick=acceptTradeOffer('"+data.tradeOffer+"');>Accept</button>";
-                    var button1 = "<button type='button' onclick=declineTradeOffer();>Decline</button>";
-                    document.getElementById("info").innerHTML += button0 + " " + button1
-
-                }
-
-
-                if (data.infoType == "inTrade"){
-                    document.getElementById("info").innerHTML = "";
-
-                    acceptButton = "<button type='button' onclick=acceptTrade();>Accept</button>";
-                    declineButton = "<button type='button' onclick=declineTrade();>Decline</button>";
-
-                    document.getElementById("info").innerHTML += acceptButton + declineButton + "<br>";
-
-
-                    document.getElementById("info").innerHTML += "Your Items: <br>";
-                    if (data.tradeItems["gold"] != "") {
-                        var button = "<button type='button' onclick=addTradeGold();>Add</button>";
-                        document.getElementById("info").innerHTML += "gold: " + data.tradeItems["gold"] + button +"<br>";
-                    }
-                    for (var item in data.tradeItems["items"]) {
-                        var button = "<button type='button' onclick=addTradeItem('"+item+"');>Add</button>";
-
-                        document.getElementById("info").innerHTML += item + ": " + data.tradeItems["items"][item] + button + "<br>";
-                    }
-
-
-
-
-                    document.getElementById("info").innerHTML += "Items you are offering: <br>";
-                    if (data.tradeItems["tradeGold"] != "") {
-                        var button = "<button type='button' onclick=removeTradeGold();>Remove</button>";
-
-                        document.getElementById("info").innerHTML += "gold: " + data.tradeItems["tradeGold"] + button + "<br>";
-                    }
-                    for (var item in data.tradeItems["tradeItems"]) {
-                        var button = "<button type='button' onclick=removeTradeItem('"+item+"');>Remove</button>";
-
-                        document.getElementById("info").innerHTML += item + ": " + data.tradeItems["tradeItems"][item] + button + "<br>";
-                    }
-
-
-                    document.getElementById("info").innerHTML += "Items your opponent is offering: <br>";
-                    if (data.tradeItems["opponentGold"] != "") {
-                        document.getElementById("info").innerHTML += "gold: " + data.tradeItems["opponentGold"] + "<br>";
-                    }
-                    for (var item in data.tradeItems["opponentItems"]) {
-
-                        document.getElementById("info").innerHTML += item + ": " + data.tradeItems["opponentItems"][item] + "<br>";
-                    }
-
-
-
-                }
-
-                if (data.infoType == "textInfo"){
-                    document.getElementById("info").innerHTML = data.textInfo;
-
-                }
-
-
-
-                //inventory:
-                var itemNames = Object.keys(data.inventory);
-
-                //console.log(data.inventory)
-                document.getElementById("inventory").innerHTML = "inventory: <br>";
-                for (var i = 0; i < itemNames.length; i++) {
-                    document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
-                    if (data.inventory[itemNames[i]][1] === true) {
-                        var button = "<button type='button' onclick=wear('"+itemNames[i]+"');>Wear</button>";
-
-                        document.getElementById("inventory").innerHTML += button;
-                    }
-                    document.getElementById("inventory").innerHTML += "<br>"
-                }
-
-
-
-            }
-
-            document.getElementById("hp").innerHTML = "Hp: " + data.hp;
-
-
-            document.getElementById("wearInfo").innerHTML = "Wearing: <br>";
-            for (var i = 0; i < data.wear.length; i++) {
-                document.getElementById("wearInfo").innerHTML += data.wear[i] + "<br>" ;
-
-
-            }
-
-
-
-
-
-        }
-    };
-
-
-    function acceptTrade() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "acceptTrade"};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function declineTrade() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "declineTrade"};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function addTradeItem(item) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "addTradeItem", "item": item};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-
-    }
-
-    function removeTradeItem(item) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "removeTradeItem", "item": item};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-
-    function addTradeGold() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "addTradeGold", "amount": 1};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function removeTradeGold() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "removeTradeGold", "amount": 1};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function acceptTradeOffer(opp) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "acceptTradeOffer", "opponent": opp};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-
-    }
-
-    function declineTradeOffer() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "declineTradeOffer"};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function offerTrade(opp) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "offerTrade", "opponent": opp};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function unWearAll() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "unWear"};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-
-    };
-
-    function wear(itemName) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "wearItem", "item": itemName};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function deposit() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "changeBalance", "amount": 1};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-
-    function withDraw() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "changeBalance", "amount": -1};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-    function buyItem(itemName) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "buyItem", "item": itemName};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-
-    function sellItem(itemName) {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "sellItem", "item": itemName};
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-
-
-    function login() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var playerName =  document.getElementById("playerName").value;
-        var passwd = document.getElementById("password").value;
-        //console.log(playerName);
-        if (playerName != "" && playerName != " ") {
-            var jiison = { action: "login", name: playerName, password: passwd};
-            var payload = JSON.stringify(jiison);
-            controlSocket.send(payload);
-        } else {
-            alert("name cannot be empty")
-        };
-
-    };
-    function moveRight() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "moveRight"};//'{"move":"right"}';
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-    function moveLeft() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "moveLeft"};//'{"move":"right"}';
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-    function moveUp() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "moveUp"};//'{"move":"right"}';
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-    function moveDown() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "moveDown"};//'{"move":"right"}';
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-    function sendMessage() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var message =  document.getElementById("message").value;
-        if (message != "") {
-            var jiison = { action: "newMessage", msg: message};
-            var payload = JSON.stringify(jiison);
-            //console.log(payload);
-            controlSocket.send(payload);
-            document.getElementById("message").value = "";
-        };
-    };
-
-    function attack(){
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "attack"};;
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    }
-
-    function doAction() {
-        var actionTimeStamp = +new Date();
-        if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
-            return
-        }
-        lastActionTimeStamp = actionTimeStamp;
-        var jiison = { action: "act"};//'{"move":"right"}';
-        var payload = JSON.stringify(jiison);
-        controlSocket.send(payload);
-    };
-
-
-
-    window.addEventListener('keydown', function (e) {
-        if (e.keyCode == 39) {
-            moveRight();
-        };
-        if (e.keyCode == 37) {
-            moveLeft();
-        };
-        if (e.keyCode == 38) {
-            moveUp();
-        }
-        if (e.keyCode == 40) {
-            moveDown();
-        }
-        if (e.keyCode == 65) {
-            attack();
-        }
-        if (e.keyCode == 84) {
-            doAction();
-        }
-    });
-
-    </script>
 </head>
 
 <body>
@@ -530,6 +22,13 @@
 
 
     <div id="gameView" style="display: none;">
+
+    <div id="mapCanvasDiv">
+        <canvas id="mapCanvas" width="480" height="480"></canvas>
+
+
+    </div>
+
 
         <div id="map" class="map">
 
@@ -566,6 +65,547 @@
 
 
     </div>
+
+
+
+        <script>
+
+
+
+
+
+        tileSet = new Image();
+        tileSet.src = 'https://asdf.dy.fi:8888/tileset.png';
+        var canvas = document.getElementById('mapCanvas');
+        var ctx = canvas.getContext('2d');
+        var tileSize = 8;       // The size of a tile (32×32)
+        var rowTileCount = 60;   // The number of tiles in a row of our background
+        var colTileCount = 60;   // The number of tiles in a column of our background
+        var imageNumTiles = 1;  // The number of tiles per row in the tileset image
+
+
+
+
+        var controlSocket = new WebSocket("wss://asdf.dy.fi:8888/controls");
+        var allChatMessages = [];
+        var prevInfo = "";
+        var lastActionTimeStamp = +new Date();
+        var actionDelay = 50; //min time between actions in milliseconds
+
+        var loggedIn = false;
+
+
+        controlSocket.onmessage = function (evt) {
+
+
+            var data = JSON.parse(evt.data);
+
+
+            if (data.hasOwnProperty("alert")) {
+                alert(data.alert);
+            }
+            else {
+
+                if (loggedIn === false) {
+                    document.getElementById("gameView").style.display='block';
+                    document.getElementById("loginView").style.display='none';
+
+                    loggedIn = true;
+                }
+
+
+                for (var r = 0; r < rowTileCount; r++) {
+                    for (var c = 0; c < colTileCount; c++) {
+                    var tile = data.map[r][c];
+                    if (tile == "x") {
+                       tile = 0;
+                    }
+                    else {
+                        tile = 1;
+                    }
+                      var tileRow = (tile / imageNumTiles) | 0; // Bitwise OR operation
+                      var tileCol = (tile % imageNumTiles) | 0;
+                      ctx.drawImage(tileSet, (tileCol * tileSize), (tileRow * tileSize), tileSize, tileSize, (c * tileSize), (r * tileSize), tileSize, tileSize);
+                   }
+                }
+
+
+
+                document.getElementById('map').innerHTML = "<br>";
+
+                for (var i = 0; i < data.map.length; i++) {
+                    var mapArea = data.map[i].join("");
+                    mapArea = mapArea.replace(/\./g,'&nbsp;')
+                    document.getElementById('map').innerHTML += mapArea + "<br>";
+                }
+
+                for (var i = 0; i < data.objects.length; i++) {
+                    var mapArea = data.objects[i].join("");
+                    mapArea = mapArea.replace(/\./g,'&nbsp;')
+                    document.getElementById('map').innerHTML += mapArea + "<br>";
+                }
+
+                //TÄSSÄ PITÄÄ POPULOIDA JOKU LISTA MESSAGEITA JOSTA POISTETAAN JOS TARVII
+                if (data.messages.length != 0) {
+                    document.getElementById("chatMessages").innerHTML = "";
+                    var list = document.getElementById("chatMessages")
+                    for (var i = 0; i < data.messages.length; i++) {
+
+                        if (allChatMessages.length >= 5) {
+                            allChatMessages.shift();
+                        };
+                        allChatMessages.push(data.messages[i])
+
+                    }
+                    for (var i = 0; i < allChatMessages.length; i++) {
+                        // Create the list item:
+                        var item = document.createElement("LI");                 // Create a <li> node
+                        var text = document.createTextNode(allChatMessages[i]);         // Create a text node
+                        item.appendChild(text);                              // Append the text to <li>
+                        document.getElementById("chatMessages").appendChild(item);     //
+                    };
+
+                };
+
+                infoData = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer)  + JSON.stringify(data.textInfo)  + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
+                if (infoData != prevInfo) {
+                    //add new span to update static info, and another for buttons only updated once per change
+                    prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
+                    document.getElementById("info").innerHTML = "shop/bank info goes here"
+                    if (data.infoType == "shop"){
+                        document.getElementById("info").innerHTML = "Item: sellvalue <br>"
+
+                        for (var item in data.sellInfo) {
+                            if (data.sellInfo.hasOwnProperty(item)) {
+                                var button = "<button type='button' onclick=sellItem('"+item+"');>sell</button>";
+                                document.getElementById("info").innerHTML += item + ": " + data.sellInfo[item] + button +"<br>";
+
+                            }
+                        }
+                        document.getElementById("info").innerHTML += "Item: buyvalue <br>"
+                        for (var item in data.buyInfo) {
+                            if (data.buyInfo.hasOwnProperty(item)) {
+                                var button = "<button type='button' onclick=buyItem('"+item+"');>Buy</button>";
+                                document.getElementById("info").innerHTML += item + ": " + data.buyInfo[item] + button +"<br>";
+
+                            }
+                        }
+                    }
+
+                    if (data.infoType == "bank"){
+                        document.getElementById("info").innerHTML = "Bank balance: " + data.bankBalance + "<br>";
+                        var button0 = "<button type='button' onclick=deposit();>deposit</button>";
+                        var button1 = "<button type='button' onclick=withDraw();>withdraw</button>";
+
+                        document.getElementById("info").innerHTML += button0 + " " + button1 +"<br>";
+                    }
+
+                    if (data.infoType == "chooseTradeTarget"){
+                        document.getElementById("info").innerHTML = "Choose trade target: "+ "<br>";
+
+                        for (var opponent in data.tradeTargets) {
+                            if (data.tradeTargets.hasOwnProperty(opponent)) {
+                                var button = "<button type='button' onclick=offerTrade('"+data.tradeTargets[opponent]+"');>Choose</button>";
+                                document.getElementById("info").innerHTML += data.tradeTargets[opponent] +" "+ button +"<br>";
+                            }
+                        }
+                    }
+
+                    if (data.infoType == "tradeOffer"){
+                        document.getElementById("info").innerHTML = data.tradeOffer + "<br>Wants to trade with you. <br>";
+                        var button0 = "<button type='button' onclick=acceptTradeOffer('"+data.tradeOffer+"');>Accept</button>";
+                        var button1 = "<button type='button' onclick=declineTradeOffer();>Decline</button>";
+                        document.getElementById("info").innerHTML += button0 + " " + button1
+
+                    }
+
+
+                    if (data.infoType == "inTrade"){
+                        document.getElementById("info").innerHTML = "";
+
+                        acceptButton = "<button type='button' onclick=acceptTrade();>Accept</button>";
+                        declineButton = "<button type='button' onclick=declineTrade();>Decline</button>";
+
+                        document.getElementById("info").innerHTML += acceptButton + declineButton + "<br>";
+
+
+                        document.getElementById("info").innerHTML += "Your Items: <br>";
+                        if (data.tradeItems["gold"] != "") {
+                            var button = "<button type='button' onclick=addTradeGold();>Add</button>";
+                            document.getElementById("info").innerHTML += "gold: " + data.tradeItems["gold"] + button +"<br>";
+                        }
+                        for (var item in data.tradeItems["items"]) {
+                            var button = "<button type='button' onclick=addTradeItem('"+item+"');>Add</button>";
+
+                            document.getElementById("info").innerHTML += item + ": " + data.tradeItems["items"][item] + button + "<br>";
+                        }
+
+
+
+
+                        document.getElementById("info").innerHTML += "Items you are offering: <br>";
+                        if (data.tradeItems["tradeGold"] != "") {
+                            var button = "<button type='button' onclick=removeTradeGold();>Remove</button>";
+
+                            document.getElementById("info").innerHTML += "gold: " + data.tradeItems["tradeGold"] + button + "<br>";
+                        }
+                        for (var item in data.tradeItems["tradeItems"]) {
+                            var button = "<button type='button' onclick=removeTradeItem('"+item+"');>Remove</button>";
+
+                            document.getElementById("info").innerHTML += item + ": " + data.tradeItems["tradeItems"][item] + button + "<br>";
+                        }
+
+
+                        document.getElementById("info").innerHTML += "Items your opponent is offering: <br>";
+                        if (data.tradeItems["opponentGold"] != "") {
+                            document.getElementById("info").innerHTML += "gold: " + data.tradeItems["opponentGold"] + "<br>";
+                        }
+                        for (var item in data.tradeItems["opponentItems"]) {
+
+                            document.getElementById("info").innerHTML += item + ": " + data.tradeItems["opponentItems"][item] + "<br>";
+                        }
+
+
+
+                    }
+
+                    if (data.infoType == "textInfo"){
+                        document.getElementById("info").innerHTML = data.textInfo;
+
+                    }
+
+
+
+                    //inventory:
+                    var itemNames = Object.keys(data.inventory);
+
+                    //console.log(data.inventory)
+                    document.getElementById("inventory").innerHTML = "inventory: <br>";
+                    for (var i = 0; i < itemNames.length; i++) {
+                        document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
+                        if (data.inventory[itemNames[i]][1] === true) {
+                            var button = "<button type='button' onclick=wear('"+itemNames[i]+"');>Wear</button>";
+
+                            document.getElementById("inventory").innerHTML += button;
+                        }
+                        document.getElementById("inventory").innerHTML += "<br>"
+                    }
+
+
+
+                }
+
+                document.getElementById("hp").innerHTML = "Hp: " + data.hp;
+
+
+                document.getElementById("wearInfo").innerHTML = "Wearing: <br>";
+                for (var i = 0; i < data.wear.length; i++) {
+                    document.getElementById("wearInfo").innerHTML += data.wear[i] + "<br>" ;
+
+
+                }
+
+
+
+
+
+            }
+        };
+
+
+        function acceptTrade() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "acceptTrade"};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function declineTrade() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "declineTrade"};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function addTradeItem(item) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "addTradeItem", "item": item};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+
+        }
+
+        function removeTradeItem(item) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "removeTradeItem", "item": item};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+
+        function addTradeGold() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "addTradeGold", "amount": 1};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function removeTradeGold() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "removeTradeGold", "amount": 1};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function acceptTradeOffer(opp) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "acceptTradeOffer", "opponent": opp};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+
+        }
+
+        function declineTradeOffer() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "declineTradeOffer"};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function offerTrade(opp) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "offerTrade", "opponent": opp};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function unWearAll() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "unWear"};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+
+        };
+
+        function wear(itemName) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "wearItem", "item": itemName};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function deposit() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "changeBalance", "amount": 1};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+
+        function withDraw() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "changeBalance", "amount": -1};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+        function buyItem(itemName) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "buyItem", "item": itemName};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+
+        function sellItem(itemName) {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "sellItem", "item": itemName};
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+
+
+        function login() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var playerName =  document.getElementById("playerName").value;
+            var passwd = document.getElementById("password").value;
+            //console.log(playerName);
+            if (playerName != "" && playerName != " ") {
+                var jiison = { action: "login", name: playerName, password: passwd};
+                var payload = JSON.stringify(jiison);
+                controlSocket.send(payload);
+            } else {
+                alert("name cannot be empty")
+            };
+
+        };
+        function moveRight() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "moveRight"};//'{"move":"right"}';
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+        function moveLeft() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "moveLeft"};//'{"move":"right"}';
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+        function moveUp() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "moveUp"};//'{"move":"right"}';
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+        function moveDown() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "moveDown"};//'{"move":"right"}';
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+        function sendMessage() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var message =  document.getElementById("message").value;
+            if (message != "") {
+                var jiison = { action: "newMessage", msg: message};
+                var payload = JSON.stringify(jiison);
+                //console.log(payload);
+                controlSocket.send(payload);
+                document.getElementById("message").value = "";
+            };
+        };
+
+        function attack(){
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "attack"};;
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        }
+
+        function doAction() {
+            var actionTimeStamp = +new Date();
+            if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+                return
+            }
+            lastActionTimeStamp = actionTimeStamp;
+            var jiison = { action: "act"};//'{"move":"right"}';
+            var payload = JSON.stringify(jiison);
+            controlSocket.send(payload);
+        };
+
+
+
+        window.addEventListener('keydown', function (e) {
+            if (e.keyCode == 39) {
+                moveRight();
+            };
+            if (e.keyCode == 37) {
+                moveLeft();
+            };
+            if (e.keyCode == 38) {
+                moveUp();
+            }
+            if (e.keyCode == 40) {
+                moveDown();
+            }
+            if (e.keyCode == 65) {
+                attack();
+            }
+            if (e.keyCode == 84) {
+                doAction();
+            }
+        });
+
+        </script>
+
+
+
+
 
 </body>
 </html>
