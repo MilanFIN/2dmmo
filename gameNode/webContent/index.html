@@ -24,10 +24,10 @@
     <div id="gameView" style="display: none;">
 
         <div id="mapCanvasDiv">
-            <canvas id="mapCanvas" width="480" height="480"></canvas>
+            <canvas id="mapCanvas" width="960" height="960"></canvas>
 
             <div id="mapCanvasDiv" class="layered">
-                <canvas id="mapCanvas" width="480" height="480"></canvas>
+                <canvas id="mapCanvas" width="960" height="960"></canvas>
             </div>
             <div id="objectCanvasDiv" class="layered">
                 <canvas id="objectCanvas" width="480" height="480"></canvas>
@@ -87,7 +87,7 @@
 
         var canvas = document.getElementById('mapCanvas');
         var ctx = canvas.getContext('2d');
-        var tileSize = 8;       // The size of a tile (32×32)
+        var tileSize = 16;       // The size of a tile
         var rowTileCount = 60;   // The number of tiles in a row of our background
         var colTileCount = 60;   // The number of tiles in a column of our background
         var imageNumTiles = 1;  // The number of tiles per row in the tileset image
@@ -127,6 +127,8 @@
 
 
                 ctx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
+                objCtx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
+
                 for (var r = 0; r < rowTileCount; r++) {
                     for (var c = 0; c < colTileCount; c++) {
                     var tile = data.map[r][c];
@@ -144,7 +146,6 @@
                 }
 
 
-                objCtx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
                 for (var r = 0; r < rowTileCount; r++) {
                     for (var c = 0; c < colTileCount; c++) {
                     var tile = data.objects[r][c];
@@ -155,9 +156,11 @@
                     else {
                         tile = 0;
                     }
+
+
                       var tileRow = (tile / imageNumTiles) | 0; // Bitwise OR operation
                       var tileCol = (tile % imageNumTiles) | 0;
-                      objCtx.drawImage(tileSet, (tileCol * tileSize), (tileRow * tileSize), tileSize, tileSize, (c * tileSize), (r * tileSize), tileSize, tileSize);
+                      ctx.drawImage(tileSet, (tileCol * tileSize), (tileRow * tileSize), tileSize, tileSize, (c * tileSize), (r * tileSize), tileSize, tileSize);
                    }
                 }
 
