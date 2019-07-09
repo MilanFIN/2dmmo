@@ -3,5 +3,18 @@
     ".": 2,
     "@": 3,
     "T": 4,
-    "r": 5
+    "r": 5,
+
+    "ground1": 1,
+    "ground2": 1,
+    "ground3": 1,
+    "ground4": 1,
+
+    "ground6": 1,
+    "ground7": 1,
+    "ground8": 1,
+    "ground9": 1
+
+
+
 }
