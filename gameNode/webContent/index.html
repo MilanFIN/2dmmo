@@ -90,7 +90,7 @@
         var tileSize = 16;       // The size of a tile
         var rowTileCount = 60;   // The number of tiles in a row of our background
         var colTileCount = 60;   // The number of tiles in a column of our background
-        var imageNumTiles = 1;  // The number of tiles per row in the tileset image
+        var imageNumTiles = 4;  // The number of tiles per row in the tileset image
 
         objectCanvas = document.getElementById('objectCanvas');
         var objCtx = objectCanvas.getContext('2d');
@@ -122,6 +122,7 @@
                     document.getElementById("loginView").style.display='none';
 
                     loggedIn = true;
+
                 }
 
 
@@ -133,8 +134,7 @@
                     for (var c = 0; c < colTileCount; c++) {
                     var tile = data.map[r][c];
                     if(tileNums.hasOwnProperty(tile)){
-
-                        if (tile in tileNums["islandTypes"]) {
+                        if (tileNums["islandTypes"].includes(tile)) {
                             if (r > 0 && r < rowTileCount -1 && c > 0 && c < colTileCount -1){
                                 if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="x" && data.map[r-1][c] === "." && data.map[r][c-1] === ".") {
                                     //ground down and right, water up and left
