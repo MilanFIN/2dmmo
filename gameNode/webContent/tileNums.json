@@ -4,8 +4,9 @@
     "@": 12,
     "T": 16,
     "r": 20,
-
-
+    "H": 4,
+    "S": 21,
+    "B":22,
 
 
     "x1": 1,
@@ -19,7 +20,16 @@
     "x8": 10,
     "x9": 11,
 
-    "islandTypes": ["x"]
+    "x10": 13,
+    "x11": 14,
+    "x12": 17,
+    "x13": 18,
 
+
+    "islandTypes": ["x"],
+
+   "_comment": "x1 upper left edge of island, x2 upper, x3 upper right etc, middle is defined on x",
+   "_comment2": "x10 -x13 are the ones sticking out, x10 up, x11 right, x12 left, x13 down",
+   "_comment3": ""
 
 }

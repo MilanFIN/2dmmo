@@ -138,35 +138,51 @@
                             if (r > 0 && r < rowTileCount -1 && c > 0 && c < colTileCount -1){
                                 if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="x" && data.map[r-1][c] === "." && data.map[r][c-1] === ".") {
                                     //ground down and right, water up and left
-                                    tile = tileNums["x1"]
+                                    tile = tileNums[tile+"1"]
                                 }
                                 else if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="x" && data.map[r-1][c] === "." && data.map[r][c-1] === "x") {
                                     //ground down left and right, water up
-                                    tile = tileNums["x2"]
+                                    tile = tileNums[tile+"2"]
                                 }
                                 else if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="." && data.map[r-1][c] === "." && data.map[r][c-1] === "x") {
                                     //ground left and down, water up and right
-                                    tile = tileNums["x3"]
+                                    tile = tileNums[tile+"3"]
                                 }
                                 else if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="x" && data.map[r-1][c] === "x" && data.map[r][c-1] === ".") {
                                     //ground right, up down, water left
-                                    tile = tileNums["x4"]
+                                    tile = tileNums[tile+"4"]
                                 }
                                 else if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="." && data.map[r-1][c] === "x" && data.map[r][c-1] === "x") {
                                     //ground left up down, water right
-                                    tile = tileNums["x6"]
+                                    tile = tileNums[tile+"6"]
                                 }
                                 else if (data.map[r+1][c] === "." && data.map[r][c+1] ==="x" && data.map[r-1][c] === "x" && data.map[r][c-1] === ".") {
                                     //ground right up, water left down
-                                    tile = tileNums["x7"]
+                                    tile = tileNums[tile+"7"]
                                 }
                                 else if (data.map[r+1][c] === "." && data.map[r][c+1] ==="x" && data.map[r-1][c] === "x" && data.map[r][c-1] === "x") {
                                     //ground left up right, water down
-                                    tile = tileNums["x8"]
+                                    tile = tileNums[tile+"8"]
                                 }
                                 else if (data.map[r+1][c] === "." && data.map[r][c+1] ==="." && data.map[r-1][c] === "x" && data.map[r][c-1] === "x") {
                                     //ground left up, water right down
-                                    tile = tileNums["x9"]
+                                    tile = tileNums[tile+"9"]
+                                }
+                                else if (data.map[r+1][c] === "x" && data.map[r][c+1] ==="." && data.map[r-1][c] === "." && data.map[r][c-1] === ".") {
+                                    //ground down, water left up right
+                                    tile = tileNums[tile+"10"]
+                                }
+                                else if (data.map[r+1][c] === "." && data.map[r][c+1] ==="." && data.map[r-1][c] === "." && data.map[r][c-1] === "x") {
+                                    //ground left, water right up down
+                                    tile = tileNums[tile+"11"]
+                                }
+                                else if (data.map[r+1][c] === "." && data.map[r][c+1] ==="x" && data.map[r-1][c] === "." && data.map[r][c-1] === ".") {
+                                    //ground right, water left down up
+                                    tile = tileNums[tile+"12"]
+                                }
+                                else if (data.map[r+1][c] === "." && data.map[r][c+1] ==="." && data.map[r-1][c] === "x" && data.map[r][c-1] === ".") {
+                                    //ground up, water right down left
+                                    tile = tileNums[tile+"13"]
                                 }
                                 else{
                                     tile = tileNums[tile];
