@@ -22,6 +22,13 @@ body {
     float: left;
 }
 
+#misc {
+    position: absolute;
+    top: 10px;
+    left: 965px;
+
+}
+
 .layered {
     position: absolute;
     top: 10px;
