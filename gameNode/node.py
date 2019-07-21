@@ -92,6 +92,11 @@ class Root(tornado.web.RequestHandler):
     def get(self):
         self.render("webContent/index.html")
 
+class Static(tornado.web.StaticFileHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
+
 class Controls(tornado.websocket.WebSocketHandler):
 
 
@@ -387,7 +392,7 @@ def make_app():
         (r"/controls", Controls),
 
         (r"/", Root),
-        (r'/(.*)', tornado.web.StaticFileHandler, {'path': './webContent/'}),
+        (r'/(.*)', Static, {'path': './webContent/'}),
 
 
     ])
@@ -400,6 +405,7 @@ if __name__ == "__main__":
                                                     "certfile": os.path.join("certs/domain-crt.txt"),
                                                     "keyfile": os.path.join("certs/domain-key.txt"),
     })
+
     http_server.listen(8888)
 
 

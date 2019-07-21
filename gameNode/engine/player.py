@@ -41,9 +41,9 @@ class MapSquare:
 
         for locationPair in islandEdges:
             #location pair is in form (y, x)
-            if (locationPair[0] == 0 or locationPair[0] == self.ySize_ - 1):
+            if (locationPair[0] == 1 or locationPair[0] == self.ySize_ - 2):
                 break
-            if (locationPair[1] == 0 or locationPair[1] == self.xSize_ - 1):
+            if (locationPair[1] == 1 or locationPair[1] == self.xSize_ - 2):
                 break
             else:
                 #direction = random.randint(0,3)
@@ -96,26 +96,26 @@ class MapSquare:
             islandCenterOffset = chunkSeed % 5 // 2
             #print("size: ", islandWidth, islandHeight, islandCenterOffsetX)
             """
-            islandWidth, islandHeight, islandCenterOffset = pseudo.getIslandDimensions(self.x_, self.y_, self.seed_)
+            islandWidth, islandHeight, islandCenterOffset = pseudo.getIslandDimensions(self.x_, self.y_, self.seed_, self.worldSize)
 
             #island edges
             islandEdges = {};
 
 
 
-            for y in range(self.ySize_ // 2 - islandCenterOffset, self.ySize_ // 2 - islandCenterOffset + islandHeight):
-                for x in range(self.xSize_ // 2 - islandCenterOffset, self.xSize_ // 2 - islandCenterOffset + islandWidth):
+            for y in range((self.ySize_ - islandHeight )//2, (self.ySize_ - islandHeight )//2+ islandHeight): #range(self.ySize_ // 2 - islandCenterOffset, self.ySize_ // 2 - islandCenterOffset + islandHeight):
+                for x in range((self.xSize_ - islandWidth )//2, (self.xSize_ - islandWidth )//2+ islandWidth):  #range(self.xSize_ // 2 - islandCenterOffset, self.xSize_ // 2 - islandCenterOffset + islandWidth):
                     self.mapMatrix_[y][x] = self.ground
                     #check if tile is on the edge of the island
-                    if (y == self.ySize_ // 2 - islandCenterOffset or y == self.ySize_ // 2 - islandCenterOffset + islandHeight - 1):
+                    if (y == (self.ySize_ - islandHeight )//2 or y == (self.ySize_ - islandHeight )//2+ islandHeight - 1):
                         # take note of the edges
                         islandEdges[(y, x)] = self.ground;
-                    if (x == self.xSize_ // 2 - islandCenterOffset or x == self.xSize_ // 2 - islandCenterOffset + islandWidth -1):
+                    if (x == (self.xSize_ - islandWidth )//2 or x == (self.xSize_ - islandWidth )//2+ islandWidth -1):
                         #take note of the edges
                         islandEdges[(y, x)] = self.ground;
             #print(islandEdges);
 
-
+            #important
             self.expandIslandEdges(islandEdges, 0)
 
 

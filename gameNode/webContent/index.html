@@ -28,10 +28,10 @@
 
 
             <div id="mapCanvasDiv" class="layered">
-                <canvas id="mapCanvas" width="960" height="960"></canvas>
+                <canvas id="mapCanvas" width="480" height="480"></canvas>
             </div>
             <div id="objectCanvasDiv" class="layered">
-                <canvas id="objectCanvas" width="960" height="960"></canvas>
+                <canvas id="objectCanvas" width="480" height="480"></canvas>
             </div>
 
 
@@ -88,8 +88,8 @@
         var canvas = document.getElementById('mapCanvas');
         var ctx = canvas.getContext('2d');
         var tileSize = 16;       // The size of a tile
-        var rowTileCount = 60;   // The number of tiles in a row of our background
-        var colTileCount = 60;   // The number of tiles in a column of our background
+        var rowTileCount = 30;   // The number of tiles in a row of our background
+        var colTileCount = 30;   // The number of tiles in a column of our background
         var imageNumTiles = 4;  // The number of tiles per row in the tileset image
 
         var objectCanvas = document.getElementById('objectCanvas');

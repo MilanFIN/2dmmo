@@ -83,8 +83,8 @@ class Game:
 
         gameState = userData["gamestate"]
 
-        x = 10
-        y = 10
+        x = 5
+        y = 5
         worldx = 0
         worldy = 0
         onLand = True

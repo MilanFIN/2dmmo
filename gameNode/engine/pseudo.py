@@ -1,8 +1,10 @@
+import configparser
+
+
 
 class Pseudo:
     def __init__(self):
         pass
-
     """island related"""
     def generateChunk(self, x, y, seed):
         chunkSeed = seed
@@ -22,11 +24,17 @@ class Pseudo:
             return True
         return False
 
-    def getIslandDimensions(self, x, y, seed):
+    def getIslandDimensions(self, x, y, seed, size):
         chunkSeed = self.generateChunk(x, y, seed)
         islandWidth = chunkSeed % 11 // 2
+        if (islandWidth > size -2):
+            islandWidth = size -2
         islandHeight = chunkSeed % 13 // 2
-        islandCenterOffset = chunkSeed % 5 // 2
+        if (islandHeight > size -2):
+            islandHeight = size -2
+
+        #this one needs fixing if supposed to work right
+        islandCenterOffset = 0 #= chunkSeed % 5 // 2
 
         return islandWidth, islandHeight, islandCenterOffset
 

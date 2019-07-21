@@ -19,7 +19,7 @@ cursor = connection.cursor()
 
 ph = PasswordHasher()
 
-defaultLoadout = {"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
+defaultLoadout = {}#{"worldx":0, "worldy":0, "x":10, "y":10, "gold":10, "bankgold":0}
 playersOnline = {}
 nodes = {} #(name, playerCount, current), current is the time it was updated
 nodeDropTimeout = 60000
