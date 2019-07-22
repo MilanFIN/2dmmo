@@ -24,19 +24,39 @@ body {
 
 #misc {
     position: absolute;
-    top: 10px;
-    left: 965px;
-
+    top: 5px;
+    left: 490px;
+    border-style: solid;
 }
 
-.layered {
+#chat {
+    top: 5px;
+    border-style: solid;
+}
+#chatMessageDiv {
+    top: 50px;
+    border-style: solid;
+}
+#hp {
+    top: 200px;
+    border-style: solid;
+}
+#inventory {
+    top: 230px;
+    border-style: solid;
+}
+#info {
+    top: 300px;
+    border-style: solid;
+}
+#wear {
+    top: 440px;
+    border-style: solid;
+}
+
+.canvasLayer {
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 5px;
-}
-
-.misc {
-    position: absolute;
-    top: 10px;
-    left: 491px;
+    border-style: solid;
 }

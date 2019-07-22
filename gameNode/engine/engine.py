@@ -1011,7 +1011,6 @@ class Game:
         opponent = self.trades.getOpponent(playerName)
         if (opponent != None):
             if (self.trades.tradeAccepted(playerName, opponent)):
-                print("trade accepted")
                 if (opponent in self.allPlayers_):
                     #dealing with moving the items
                     opp = self.allPlayers_[opponent]
