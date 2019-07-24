@@ -37,21 +37,18 @@
 
         </div>
 
-        <div id="misc" class="misc">
-            <div id="chat" class="chat">chat: <br>
-                <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
-                <button onclick="sendMessage()">Send</button>
+        <div id="column1" class="misc">
 
-                <div id="chatMessageDiv">
 
-                    <ul id="chatMessages" style="list-style-type:none;">
-                        <li> </li>
-                    </ul>
-                </div>
-            </div>
             <div id="hp" class="hp">
 
             </div>
+
+            <div id="wear" class="wear">
+                <div id="wearInfo" class="wearInfo"></div>
+                <button onclick="unWearAll()">reset wear</button>
+            </div>
+
 
             <div id="inventory" class="inventory">
 
@@ -63,13 +60,24 @@
                 <div id="staticInfo" class="info"></div>
 
             </div>
-            <br>
-            <div id="wear" class="wear">
-                <div id="wearInfo" class="wearInfo"></div>
-                <button onclick="unWearAll()">reset wear</button>
+
+
+
+        </div>
+        <div id="column2">
+
+            <div id="chat" class="chat">chat: <br>
+                <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
+                <button onclick="sendMessage()">Send</button>
+
+                <div id="chatMessageDiv">
+
+                    <ul id="chatMessages" style="list-style-type:none;">
+                        <li> </li>
+                    </ul>
+                </div>
             </div>
         </div>
-
     </div>
 
 

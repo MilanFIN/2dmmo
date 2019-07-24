@@ -22,41 +22,61 @@ body {
     float: left;
 }
 
-#misc {
-    position: absolute;
-    top: 5px;
-    left: 490px;
-    border-style: solid;
-}
-
-#chat {
-    top: 5px;
-    border-style: solid;
-}
-#chatMessageDiv {
-    top: 50px;
-    border-style: solid;
-}
-#hp {
-    top: 200px;
-    border-style: solid;
-}
-#inventory {
-    top: 230px;
-    border-style: solid;
-}
-#info {
-    top: 300px;
-    border-style: solid;
-}
-#wear {
-    top: 440px;
-    border-style: solid;
-}
 
 .canvasLayer {
     position: absolute;
     top: 5px;
     left: 5px;
     border-style: solid;
+}
+
+#column1 {
+    position: absolute;
+    top: 5px;
+    left: 490px;
+    border-style: solid;
+    height: 480px;
+    max-height: 480px;
+    width: 250px;
+    max-width: 250px;
+}
+
+
+#hp {
+    top: 5px;
+    border-style: solid;
+    height: 20px;
+    max-height: 20px;
+}
+#wear {
+    top: 25px;
+    border-style: solid;
+    height: 105px;
+    max-height: 105px;
+}
+#inventory {
+    top: 130px;
+    border-style: solid;
+    height: 170px;
+    max-height: 170px;
+    overflow-y: scroll;
+}
+#info {
+    top: 305px;
+    border-style: solid;
+    height: 170px;
+    max-height: 170px;
+    overflow-y: scroll;
+}
+
+
+#column2 {
+    position: absolute;
+    top: 5px;
+    left: 750px;
+    border-style: solid;
+    height: 480px;
+    max-height: 480px;
+    width: 250px;
+    max-width: 250px;
 }
