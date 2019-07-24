@@ -126,7 +126,7 @@ class MapSquare:
 
 class Player:
     """defines a player and the actions they can take"""
-    def __init__(self,name, worldX, worldY, x, y, seed, squareSize):
+    def __init__(self,name, worldX, worldY, x, y, seed, squareSize, origX, origY, origWX, origWY):
 
 
         self.config = configparser.ConfigParser()
@@ -156,10 +156,10 @@ class Player:
         self.x_ = x
         self.y_ = y
 
-        self.originWX = worldX
-        self.originWY = worldY
-        self.originX = x
-        self.originY = y
+        self.originWX = origX
+        self.originWY = origY
+        self.originX = origWX
+        self.originY = origWY
 
         self.squareSize_ = squareSize
         self.moved_ = False #defines if player has moved on the server tick alaready

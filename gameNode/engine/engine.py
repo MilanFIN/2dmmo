@@ -83,10 +83,16 @@ class Game:
 
         gameState = userData["gamestate"]
 
-        x = 5
-        y = 5
-        worldx = 0
-        worldy = 0
+        origX = 5
+        origY = 5
+        origWX = 0
+        origWY = 0
+
+
+        x = origX
+        y = origY
+        worldx = origWX
+        worldy = origWY
         onLand = True
         inv = {}
         gold = 10
@@ -110,7 +116,7 @@ class Game:
 
 
 
-        player = Player(userData["name"], worldx, worldy, x, y, self.seed, self.squareSize_)
+        player = Player(userData["name"], worldx, worldy, x, y, self.seed, self.squareSize_, origX, origY, origWX, origWY)
         player.setOnLand(onLand)
         player.inventory.setInventory(inv)
         player.inventory.setGold(gold)
