@@ -208,6 +208,7 @@
                                 tile = tileNums[tile];
                             }
                         }
+
                         else{
                             tile = tileNums[tile];
                         }
@@ -228,7 +229,19 @@
                     for (var c = 0; c < colTileCount; c++) {
                     var tile = data.objects[r][c];
                     if(tileNums.hasOwnProperty(tile)){
-                        tile = tileNums[tile];
+
+                        if (tileNums["playerTypes"].includes(tile) && data.map[r][c] === "."){
+                          if (tileNums.hasOwnProperty(tile+"sea")) {
+                            tile = tileNums[tile+"sea"];
+
+                          }
+                          else {
+                            tile = tileNums[tile];
+                          }
+                        }
+                        else {
+                          tile = tileNums[tile];
+                        }
                     }
 
                     else {

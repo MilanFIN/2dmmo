@@ -156,10 +156,11 @@ class Player:
         self.x_ = x
         self.y_ = y
 
-        self.originWX = origX
-        self.originWY = origY
-        self.originX = origWX
-        self.originY = origWY
+
+        self.originWX = origWX
+        self.originWY = origWY
+        self.originX = origX
+        self.originY = origY
 
         self.squareSize_ = squareSize
         self.moved_ = False #defines if player has moved on the server tick alaready
