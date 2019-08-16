@@ -379,7 +379,7 @@ class Controls(tornado.websocket.WebSocketHandler):
                 #print("Player left")
             except KeyError:
                 #print("Player left, but nobody cares as they never registered")
-
+                pass
             try:
                 self.timer_.stop()
             except Exception:
