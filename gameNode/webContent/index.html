@@ -37,6 +37,13 @@
 
         </div>
 
+        <div id="info" class="info">
+            <div id="dynamicInfo" class="info"></div>
+            <br>
+            <div id="staticInfo" class="info"></div>
+
+        </div>
+
         <div id="column1" class="misc">
 
 
@@ -54,21 +61,10 @@
 
             </div>
 
-            <div id="info" class="info">
-                <div id="dynamicInfo" class="info"></div>
-                <br>
-                <div id="staticInfo" class="info"></div>
-
-            </div>
-
-
-
-        </div>
-        <div id="column2">
 
             <div id="chat" class="chat">chat: <br>
-                <input id="message" type="text" name="message" placeholder="Send a message to nearby players">
-                <button onclick="sendMessage()">Send</button>
+                <input id="message" type="text" name="message" placeholder="Send a message">
+                <button id="sendButton" onclick="sendMessage()">Send</button>
 
                 <div id="chatMessageDiv">
 
@@ -76,7 +72,11 @@
                         <li> </li>
                     </ul>
                 </div>
+                <div>
+
             </div>
+
+
         </div>
     </div>
 
@@ -298,7 +298,7 @@
                 if (infoData != prevInfo) {
                     //add new span to update static info, and another for buttons only updated once per change
                     prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
-                    document.getElementById("info").innerHTML = "shop/bank info goes here"
+                    document.getElementById("info").innerHTML = ""
                     if (data.infoType == "shop"){
                         document.getElementById("info").innerHTML = "Item: sellvalue <br>"
 
@@ -319,7 +319,7 @@
                         }
                     }
 
-                    if (data.infoType == "bank"){
+                    else if (data.infoType == "bank"){
                         document.getElementById("info").innerHTML = "Bank balance: " + data.bankBalance + "<br>";
                         var button0 = "<button type='button' onclick=deposit();>deposit</button>";
                         var button1 = "<button type='button' onclick=withDraw();>withdraw</button>";
@@ -327,7 +327,7 @@
                         document.getElementById("info").innerHTML += button0 + " " + button1 +"<br>";
                     }
 
-                    if (data.infoType == "chooseTradeTarget"){
+                    else if (data.infoType == "chooseTradeTarget"){
                         document.getElementById("info").innerHTML = "Choose trade target: "+ "<br>";
 
                         for (var opponent in data.tradeTargets) {
@@ -338,7 +338,7 @@
                         }
                     }
 
-                    if (data.infoType == "tradeOffer"){
+                    else if (data.infoType == "tradeOffer"){
                         document.getElementById("info").innerHTML = data.tradeOffer + "<br>Wants to trade with you. <br>";
                         var button0 = "<button type='button' onclick=acceptTradeOffer('"+data.tradeOffer+"');>Accept</button>";
                         var button1 = "<button type='button' onclick=declineTradeOffer();>Decline</button>";
@@ -347,7 +347,7 @@
                     }
 
 
-                    if (data.infoType == "inTrade"){
+                    else if (data.infoType == "inTrade"){
                         document.getElementById("info").innerHTML = "";
 
                         acceptButton = "<button type='button' onclick=acceptTrade();>Accept</button>";
@@ -396,8 +396,16 @@
 
                     }
 
-                    if (data.infoType == "textInfo"){
+                    else if (data.infoType == "textInfo"){
                         document.getElementById("info").innerHTML = data.textInfo;
+
+                    }
+                    else {
+                      document.getElementById("info").style.display='none';
+                    }
+
+                    if (document.getElementById("info").innerHTML != "") {
+                      document.getElementById("info").style.display='block';
 
                     }
 

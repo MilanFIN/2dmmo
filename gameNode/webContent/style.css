@@ -37,8 +37,8 @@ body {
     border-style: solid;
     height: 480px;
     max-height: 480px;
-    width: 250px;
-    max-width: 250px;
+    width: 300px;
+    max-width: 300px;
 }
 
 
@@ -61,22 +61,32 @@ body {
     max-height: 170px;
     overflow-y: scroll;
 }
-#info {
-    top: 305px;
+
+
+#chat {
+    top: 300px;
     border-style: solid;
     height: 170px;
     max-height: 170px;
-    overflow-y: scroll;
 }
 
 
-#column2 {
+#info {
     position: absolute;
-    top: 5px;
-    left: 745px;
+    top: 40px;
+    left: 80px;
     border-style: solid;
-    height: 480px;
-    max-height: 480px;
-    width: 250px;
-    max-width: 250px;
+    height: 400px;
+    max-height: 400px;
+    width: 320px;
+    max-width: 320px;
+    background-color: black;
+
+    overflow-y: scroll;
+}
+
+#sendButton {
+  padding: 0px 0px;
+  font-size: 16px;
+  margin: 4px 2px;
 }
