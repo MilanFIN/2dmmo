@@ -37,7 +37,7 @@ def dropLostClients():
 
 def dropLostNodes():
     global nodes
-    print(nodes)
+    #print(nodes)
     newNodes = {}
     for node in nodes:
         if (time.time() - nodes[node][2] <= nodeDropTimeout):
@@ -144,7 +144,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
                         del playersOnline[parsed_msg["name"]]
 
 
-                    print(json.dumps(parsed_msg["gamestate"]))
+                    #print(json.dumps(parsed_msg["gamestate"]))
 
 
                 #store gamestate for backup

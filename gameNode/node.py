@@ -72,7 +72,7 @@ def backUpGameState():
 
         for player in clients.values():
             gamestate = game.getGameState(player)
-            print("sent gamestate for", player)
+            #print("sent gamestate for", player)
             name = player
             message = {"action": "update", "passphrase": passphrase, "name": name, "gamestate": gamestate}
             ws.send(json.dumps(message))
@@ -108,7 +108,7 @@ class Controls(tornado.websocket.WebSocketHandler):
                 message, destination = ("", "")
                 with masterSendQueLock:
 
-                    print(masterSendQue)
+                    #print(masterSendQue)
 
 
                     message, destination = masterSendQue[0]
@@ -117,7 +117,7 @@ class Controls(tornado.websocket.WebSocketHandler):
                 ws.send(json.dumps(message))
                 result =  ws.recv()
                 userData = json.loads(result)
-                print(userData)
+                #print(userData)
                 ws.close()
                 if (userData["result"] == "login"):
                     #print("Received '%s'" % result)
@@ -128,7 +128,7 @@ class Controls(tornado.websocket.WebSocketHandler):
                                     loggedPlayers.append((userData, destination))
 
                 elif (userData["result"] == "error"):
-                    print("incorrect username and password")
+                    #print("incorrect username and password")
                     with alertsLock:
                         result = ({"alert": userData["message"]}, destination)
                         alerts.append(result)
@@ -353,7 +353,7 @@ class Controls(tornado.websocket.WebSocketHandler):
         with clientsLock:
             if (self in clients):
                 gamestate = game.getGameState(clients[self])#json.dumps(game.getGameState(clients[self]))
-                print(gamestate)
+                #print(gamestate)
                 name = clients[self]
 
                 ws = create_connection(masterAddress)
@@ -374,9 +374,9 @@ class Controls(tornado.websocket.WebSocketHandler):
 
             try:
                 del clients[self]
-                print("Player left")
+                #print("Player left")
             except KeyError:
-                print("Player left, but nobody cares as they never registered")
+                #print("Player left, but nobody cares as they never registered")
 
             try:
                 self.timer_.stop()
