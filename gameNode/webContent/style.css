@@ -90,3 +90,30 @@ body {
   font-size: 16px;
   margin: 4px 2px;
 }
+
+
+
+
+
+
+#banner {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+
+#navBar {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  width: 464px;
+  max-width: 464px;
+}
+#loginDiv {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  width: 464px;
+  max-width: 464px;
+}
