@@ -50,6 +50,10 @@ class Root(tornado.web.RequestHandler):
     def get(self):
         self.render("webContent/index.html")
 
+class Static(tornado.web.StaticFileHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
 
 class Servers(tornado.web.RequestHandler):
     def get(self):
@@ -205,6 +209,8 @@ def make_app():
         (r"/", Root),
         (r"/servers", Servers),
         (r"/ws", wshandler),
+        (r'/(.*)', Static, {'path': './webContent/'}),
+
 
         #(r"/", MainHandler),
     ])

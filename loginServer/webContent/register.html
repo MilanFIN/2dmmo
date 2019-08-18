@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>MMO RPG</title>
+
+  <link rel="stylesheet" href="style.css">
+
+
+  <script>
+
+
+          var socket = new WebSocket("wss://asdf.dy.fi:3001/ws");
+          //var socket = new WebSocket("ws://localhost:3001/ws");
+
+          socket.onmessage = function (evt) {
+              var data = JSON.parse(evt.data);
+
+              if (data.result == "register") {
+                  alert(data.message);
+              }
+              else if (data.result == "error") {
+                  alert(data.message);
+              }
+
+          }
+
+          function register(){
+
+              if (document.getElementById("password").value != document.getElementById("password2").value) {
+                  alert("passwords don't match");
+                  return;
+              }
+
+
+              var jiison = { "action": "register", "name": document.getElementById("name").value, "password": document.getElementById("password").value};
+              var payload = JSON.stringify(jiison);
+              socket.send(payload);
+
+          }
+   </script>
+
+</head>
+
+<body>
+  <img id="banner" src="banner.png" alt="Site banner">
+
+
+     <div id="navBar">
+       <table style="width:100%">
+          <tr>
+            <td><a href="index.html">Home</a></td>
+            <td><a href="register.html">Register</a></td>
+            <td><a href="instructions.html">Instructions</a></td>
+          </tr>
+       </table>
+     </div>
+
+     <br>
+     <br>
+
+     <div id="register" class="register">register: <br>
+         <input id="name" type="text" name="name" placeholder="Username"> <br>
+         <input id="password" type="password" name="password" placeholder="Password"> <br>
+         <input id="password2" type="password" name="password" placeholder="Repeat Password"> <br>
+
+         <button onclick="register()">Register</button>
+     </div>
+
+</body>

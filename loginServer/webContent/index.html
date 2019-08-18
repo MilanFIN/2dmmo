@@ -3,6 +3,10 @@
 
 <head>
 
+  <title>MMO RPG</title>
+
+  <link rel="stylesheet" href="style.css">
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script>
 
@@ -58,19 +62,34 @@
 
 <body>
 
-    <div id="register" class="register">register: <br>
-        <input id="name" type="text" name="name" placeholder="Username"> <br>
-        <input id="password" type="password" name="password" placeholder="Password"> <br>
-        <input id="password2" type="password" name="password" placeholder="Repeat Password"> <br>
+ <img id="banner" src="banner.png" alt="Site banner">
 
-        <button onclick="register()">Register</button>
+
+    <div id="navBar">
+      <table style="width:100%">
+         <tr>
+           <td><a href="index.html">Home</a></td>
+           <td><a href="register.html">Register</a></td>
+           <td><a href="about.html">About</a></td>
+         </tr>
+      </table>
     </div>
 
     <br>
+    <br>
 
-    <div id="serverList" class="serverList">
-        Server list: <br>
-    </div>
+    <div id="listDiv">
+
+          <div id="serverList" class="serverList">
+              Server list: <br>
+          </div>
+     </div>
+
+<br>
+<br>
+
+    <br>
+
 
 </body>
 </html>
