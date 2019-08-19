@@ -218,11 +218,11 @@ def make_app():
 if __name__ == "__main__":
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app
-                                                ,
-                                                ssl_options = {
-                                                    "certfile": os.path.join("certs/domain-crt.txt"),
-                                                    "keyfile": os.path.join("certs/domain-key.txt"),
-                                                }
+                                                #,
+                                                #ssl_options = {
+                                                #    "certfile": os.path.join("certs/domain-crt.txt"),
+                                                #    "keyfile": os.path.join("certs/domain-key.txt"),
+                                                #}
     )
     http_server.listen(3001)
     DropLostTimer = tornado.ioloop.PeriodicCallback(dropLostClients, 600000, jitter=0)

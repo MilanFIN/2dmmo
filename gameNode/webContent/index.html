@@ -107,16 +107,16 @@
 
 
         tileSet = new Image();
-        tileSet.src = 'https://asdf.dy.fi:8888/tileset.png';
-        //tileSet.src = 'http://localhost:8888/tileset.png';
+        //tileSet.src = 'https://asdf.dy.fi:8888/tileset.png';
+        tileSet.src = 'http://localhost:8888/tileset.png';
         tileNums = {};
-        $.getJSON('https://asdf.dy.fi:8888/tileNums.json', function(data) {
-            tileNums = data
-        })
-
-        /*$.getJSON('http://localhost:8888/tileNums.json', function(data) {
+        /*$.getJSON('https://asdf.dy.fi:8888/tileNums.json', function(data) {
             tileNums = data
         })*/
+
+        $.getJSON('http://localhost:8888/tileNums.json', function(data) {
+            tileNums = data
+        })
 
         var canvas = document.getElementById('mapCanvas');
         var ctx = canvas.getContext('2d');
@@ -130,8 +130,8 @@
 
 
 
-        var controlSocket = new WebSocket("wss://asdf.dy.fi:8888/controls");
-        //var controlSocket = new WebSocket("ws://localhost:8888/controls");
+        //var controlSocket = new WebSocket("wss://asdf.dy.fi:8888/controls");
+        var controlSocket = new WebSocket("ws://localhost:8888/controls");
 
         var allChatMessages = [];
         var prevInfo = "";

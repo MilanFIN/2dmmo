@@ -26,12 +26,12 @@ clients = {}
 game = Game()
 
 
-#masterAddress = "ws://localhost:3001/ws"
-masterAddress = "wss://asdf.dy.fi:3001/ws"
+masterAddress = "ws://localhost:3001/ws"
+#masterAddress = "wss://asdf.dy.fi:3001/ws"
 passphrase = "testipassu1234"
 nodeName = "Finland 1"
-#nodeAddress = "http://localhost:8888"
-nodeAddress = "https://www.asdf.dy.fi:8888"
+nodeAddress = "http://localhost:8888"
+#nodeAddress = "https://www.asdf.dy.fi:8888"
 maxPlayers = 300
 
 
@@ -403,11 +403,11 @@ if __name__ == "__main__":
     app = make_app()
 
     http_server = tornado.httpserver.HTTPServer(app
-                                                ,
-                                                ssl_options = {
-                                                    "certfile": os.path.join("certs/domain-crt.txt"),
-                                                    "keyfile": os.path.join("certs/domain-key.txt"),
-                                                }
+                                                #,
+                                                #ssl_options = {
+                                                #    "certfile": os.path.join("certs/domain-crt.txt"),
+                                                #    "keyfile": os.path.join("certs/domain-key.txt"),
+                                                #}
     )
 
     http_server.listen(8888)
