@@ -241,7 +241,7 @@
                    }
                 }
 
-                objCtx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
+                //objCtx.clearRect(0, 0, objectCanvas.width, objectCanvas.height);
 
                 for (var r = 0; r < rowTileCount; r++) {
                     for (var c = 0; c < colTileCount; c++) {
@@ -269,6 +269,7 @@
 
                       var tileRow = (tile / imageNumTiles) | 0; // Bitwise OR operation
                       var tileCol = (tile % imageNumTiles) | 0;
+                      objCtx.clearRect((c * tileSize), (r * tileSize), (c * tileSize) + tileSize, (r * tileSize) + tileSize);
                       objCtx.drawImage(tileSet, (tileCol * tileSize), (tileRow * tileSize), tileSize, tileSize, (c * tileSize), (r * tileSize), tileSize, tileSize);
                    }
                 }
