@@ -342,6 +342,14 @@ class Controls(tornado.websocket.WebSocketHandler):
                 amount = parsed_msg["amount"]
                 game.removeTradeGold(clients[self], amount)
 
+        if (parsed_msg["action"] == "getTile"):
+            if (self in clients.keys()):
+                x = parsed_msg["x"]
+                y = parsed_msg["y"]
+
+                game.getTileInfo(clients[self], x, y)
+
+
 
 
 

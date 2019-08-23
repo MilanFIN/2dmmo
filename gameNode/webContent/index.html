@@ -119,6 +119,8 @@
         })
 
         var canvas = document.getElementById('mapCanvas');
+
+
         var ctx = canvas.getContext('2d');
         var tileSize = 16;       // The size of a tile
         var rowTileCount = 30;   // The number of tiles in a row of our background
@@ -732,6 +734,28 @@
             controlSocket.send(payload);
         };
 
+
+        function askForTileInfo(canvas, event){
+          var actionTimeStamp = +new Date();
+          if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
+              return
+          }
+          lastActionTimeStamp = actionTimeStamp;
+          const rect = canvas.getBoundingClientRect()
+          var x = event.clientX - rect.left
+          var y = event.clientY - rect.top
+          console.log("x: " + x + " y: " + y)
+          x = Math.floor(x/tileSize);
+          y = Math.floor(y/tileSize);
+
+          var jiison = { action: "getTile", "x": x, "y": y};//'{"move":"right"}';
+          var payload = JSON.stringify(jiison);
+          controlSocket.send(payload);
+        }
+
+        objectCanvas.addEventListener('mousedown', function(e) {
+            askForTileInfo(canvas, e)
+        });
 
 
         window.addEventListener('keydown', function (e) {

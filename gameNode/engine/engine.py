@@ -1117,6 +1117,15 @@ class Game:
         self.trades.removeGold(playerName, amount)
 
 
+    def getTileInfo(self, playerName, x, y):
+        player = self.allPlayers_[playerName]
+        worldx = 0
+        worldy = 0
+
+        if (x >= 2* self.squareSize_):
+            x -= 2*self.squareSize_
+            worldx = player.getWorldX()
+        """jatka tästä, worldx ja y laskeminen, ja sit tietojen hakeminen niistä, sit message pelaajan queen jossa listattuna ne"""
 
     def getGameState(self, playerName):
         player = self.allPlayers_[playerName]
