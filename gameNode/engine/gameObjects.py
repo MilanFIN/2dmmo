@@ -54,6 +54,8 @@ class Resource(GameObject):
             return True
         else:
             return False
+    def getType(self):
+        return self.type
 
     def dropType(self):
         return self.drops

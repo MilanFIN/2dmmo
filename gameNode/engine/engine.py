@@ -1122,10 +1122,79 @@ class Game:
         worldx = 0
         worldy = 0
 
+        #calculate absolute coordinates
         if (x >= 2* self.squareSize_):
             x -= 2*self.squareSize_
+            worldx = player.getWorldX() + 1
+        elif (x >= self.squareSize_):
+            x -= self.squareSize_
             worldx = player.getWorldX()
-        """jatka tästä, worldx ja y laskeminen, ja sit tietojen hakeminen niistä, sit message pelaajan queen jossa listattuna ne"""
+        else:
+            worldx = player.getWorldX() -1
+        if (y >= 2* self.squareSize_):
+            y -= 2*self.squareSize_
+            worldy = player.getWorldY() + 1
+        elif (y >= self.squareSize_):
+            y -= self.squareSize_
+            worldy = player.getWorldY()
+        else:
+            worldy = player.getWorldY() -1
+
+        objectsInTile = []
+
+        #handle different stuff
+        if ((worldx, worldy) in self.shops):
+            for shop in self.shops[(worldx, worldy)]:
+                if (shop.getX() == x and shop.getY() == y):
+                    objectsInTile.append("shop")
+
+        #handle different stuff
+        if ((worldx, worldy) in self.harbors):
+            for harbor in self.harbors[(worldx, worldy)]:
+                if (harbor.getX() == x and harbor.getY() == y):
+                    objectsInTile.append("harbor")
+
+        #handle different stuff
+        if ((worldx, worldy) in self.banks):
+            for bank in self.banks[(worldx, worldy)]:
+                if (bank.getX() == x and bank.getY() == y):
+                    objectsInTile.append("bank")
+
+        #handle different stuff
+        if ((worldx, worldy) in self.hospitals):
+            for hospital in self.hospitals[(worldx, worldy)]:
+                if (hospital.getX() == x and hospital.getY() == y):
+                    objectsInTile.append("hospital")
+
+        if ((worldx, worldy) in self.trees):
+            for tree in self.trees[(worldx, worldy)]:
+                if (tree.getX() == x and tree.getY() == y):
+                    objectsInTile.append(tree.getType())
+
+        #monsters and npc's
+        if ((worldx, worldy) in self.monsters):
+            for monster in self.monsters[(worldx, worldy)]:
+                if (monster.getX() == x and monster.getY() == y):
+                    objectsInTile.append(monster.getType())
+
+        if ((worldx, worldy) in self.Npcs):
+            for npc in self.Npcs[(worldx, worldy)]:
+                if (npc.getX() == x and npc.getY() == y):
+                    objectsInTile.append(npc.getType())
+
+
+
+        #other players
+        for opp in player.getNeighbors():
+            opponent = self.allPlayers_[opp]
+            if (opponent.getWorldX() == worldx and opponent.getWorldY() == worldy):
+                if (opponent.getX() == x and opponent.getY() == y):
+                    objectsInTile.append(opponent.getName())
+
+
+        if (len(objectsInTile) != 0):
+            player.addMessage("Game", ",".join(objectsInTile))
+
 
     def getGameState(self, playerName):
         player = self.allPlayers_[playerName]
