@@ -1,6 +1,7 @@
 import configparser
 import json
 from engine.pseudo import *
+import time
 
 class GameObject:
     def __init__(self, x, y):
@@ -45,15 +46,27 @@ class Resource(GameObject):
         self.x = x
         self.y = y
 
+        """Tästä jatkoa, lisää actioniin testi onko hengissä, piirtoon samoin
+        päivitystriggeriin check onko kulunut tarpeeksi aikaa, ja jos on niin resettaa hp
+        Lue aika configista
+        """
+        self.deathTime = 0;
+        self.originalHp = self.hp
+
     def hit(self):
         if (self.hp > 0):
             self.hp -= 1
+        if (self.hp <= 0):
+            self.deathTime = time.time()
 
     def alive(self):
         if (self.hp > 0):
             return True
         else:
             return False
+    def getDeathTime(self):
+        return self.deathTime
+
     def getType(self):
         return self.type
 
