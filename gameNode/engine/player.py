@@ -542,7 +542,8 @@ class Player:
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in trees):
                     for tree in trees[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
+                        if (tree.alive()):
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
 
         #shops
         for y in range(-1, 2):

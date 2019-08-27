@@ -1,6 +1,6 @@
 
 
-from time import sleep
+import time
 import copy
 
 from engine.npc import *
@@ -18,7 +18,7 @@ import json
 """
 TODO:
 
-
+RIVI 639
 
 
 
@@ -627,6 +627,22 @@ class Game:
                 for monster in self.monsters[i]:
                     monster.move(self.squareCache[i])
 
+
+
+        #respawn stuff
+
+        for i in (self.trees):
+            if (i in self.squareCache):
+                for tree in self.trees[i]:
+                    if (not tree.alive()):
+                        print("respawning")
+                        """ JATKA TÄSTÄ, lue konffista ensin viive, ja käytä sitä esim self.respawnDelay tms """
+                        respawnTimer = 10
+                        if (time.time() - tree.getDeathTime() >= respawnTimer):
+                            tree.respawn()
+
+
+
     def printGameState(self, playerName):  # again bad name, just returns stuff
         # get a gameview of the specified player
         return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.hospitals, self.harbors)
@@ -773,18 +789,19 @@ class Game:
         if ((x, y) in self.trees):
             for tree in self.trees[(x, y)]:
                 if (tree.getX() == player.getX() and tree.getY() == player.getY()):
-                    player.act()
-                    tree.hit()
-                    if (not tree.alive()):
-                        player.addMessage(
-                            "Game", "You " + tree.getDeathNote() + ".")
-                        for i in range(tree.dropAmount()):
-                            player.addItemToInv(tree.dropType())
+                    if (tree.alive()):
+                        player.act()
+                        tree.hit()
+                        if (not tree.alive()):
+                            player.addMessage(
+                                "Game", "You " + tree.getDeathNote() + ".")
+                            for i in range(tree.dropAmount()):
+                                player.addItemToInv(tree.dropType())
 
-                        self.trees[(x, y)].remove(tree)
-                    else:
-                        player.addMessage("Game", "You " + tree.getHitNote() + ".")
-                    return
+                            #self.trees[(x, y)].remove(tree)
+                        else:
+                            player.addMessage("Game", "You " + tree.getHitNote() + ".")
+                        return
 
 
         #handle players challenging others to trade

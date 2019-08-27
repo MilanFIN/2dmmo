@@ -64,6 +64,8 @@ class Resource(GameObject):
             return True
         else:
             return False
+    def respawn(self):
+        self.hp = self.originalHp
     def getDeathTime(self):
         return self.deathTime
 
