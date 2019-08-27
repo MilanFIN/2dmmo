@@ -635,10 +635,7 @@ class Game:
             if (i in self.squareCache):
                 for tree in self.trees[i]:
                     if (not tree.alive()):
-                        print("respawning")
-                        """ JATKA TÄSTÄ, lue konffista ensin viive, ja käytä sitä esim self.respawnDelay tms """
-                        respawnTimer = 10
-                        if (time.time() - tree.getDeathTime() >= respawnTimer):
+                        if (tree.canRespawn()):
                             tree.respawn()
 
 
@@ -1186,7 +1183,8 @@ class Game:
         if ((worldx, worldy) in self.trees):
             for tree in self.trees[(worldx, worldy)]:
                 if (tree.getX() == x and tree.getY() == y):
-                    objectsInTile.append(tree.getType())
+                    if (tree.alive()):
+                        objectsInTile.append(tree.getType())
 
         #monsters and npc's
         if ((worldx, worldy) in self.monsters):

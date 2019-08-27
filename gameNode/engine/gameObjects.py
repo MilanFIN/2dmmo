@@ -50,7 +50,8 @@ class Resource(GameObject):
         päivitystriggeriin check onko kulunut tarpeeksi aikaa, ja jos on niin resettaa hp
         Lue aika configista
         """
-        self.deathTime = 0;
+        self.deathTime = 0
+        self.respawnDelay = int(self.config[self.type]["respawnDelay"])
         self.originalHp = self.hp
 
     def hit(self):
@@ -66,8 +67,11 @@ class Resource(GameObject):
             return False
     def respawn(self):
         self.hp = self.originalHp
-    def getDeathTime(self):
-        return self.deathTime
+    def canRespawn(self):
+        if (time.time() - self.deathTime >= self.respawnDelay):
+            return True
+        else:
+            return False
 
     def getType(self):
         return self.type
