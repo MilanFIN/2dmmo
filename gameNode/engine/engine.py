@@ -638,6 +638,12 @@ class Game:
                         if (tree.canRespawn()):
                             tree.respawn()
 
+        for i in (self.monsters):
+            if (i in self.squareCache):
+                for monster in self.monsters[i]:
+                    if (not monster.alive()):
+                        if (monster.canRespawn()):
+                            monster.respawn()
 
 
     def printGameState(self, playerName):  # again bad name, just returns stuff
@@ -875,31 +881,32 @@ class Game:
                 locX = player.getX()
                 locY = player.getY()
                 if (abs(monster.getX() - player.getX()) <= 1 and abs(monster.getY() - player.getY()) <= 1):
-                    player.act()
-                    monster.hit(player.getAttack())
+                    if (monster.alive()):
+                        player.act()
+                        monster.hit(player.getAttack())
 
 
-                    if (not monster.alive()):
-                        player.addMessage(
-                            "Game", "You hit the " + monster.getType() + " and it "+ monster.getDeathNote() + ".")
-                        if (monster.dropType() == ""):
-                            pass
-                        elif (monster.dropType() == "gold"):
-                            player.addGold(monster.dropAmount())
+                        if (not monster.alive()):
+                            player.addMessage(
+                                "Game", "You hit the " + monster.getType() + " and it "+ monster.getDeathNote() + ".")
+                            if (monster.dropType() == ""):
+                                pass
+                            elif (monster.dropType() == "gold"):
+                                player.addGold(monster.dropAmount())
+                            else:
+                                for i in range(monster.dropAmount()):
+                                    player.addItemToInv(monster.dropType())
+                            #self.monsters[(x, y)].remove(monster)
                         else:
-                            for i in range(monster.dropAmount()):
-                                player.addItemToInv(monster.dropType())
-                        self.monsters[(x, y)].remove(monster)
-                    else:
-                        damageTaken = player.hit(monster.getAttack())
-                        player.addMessage(
-                            "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
+                            damageTaken = player.hit(monster.getAttack())
+                            player.addMessage(
+                                "Game", "You hit a " + monster.getType() + " and did " + str(player.getAttack()) + " damage.")
 
-                        player.addMessage(
-                            "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(damageTaken) + " damage.")
+                            player.addMessage(
+                                "Game", "The " + monster.getType() + " " + monster.getAttackType() +" you and did " + str(damageTaken) + " damage.")
 
-                    canExit = True
-                    break
+                        canExit = True
+                        break
             if (canExit):
                 return
 
@@ -1133,6 +1140,7 @@ class Game:
 
     def getTileInfo(self, playerName, x, y):
         player = self.allPlayers_[playerName]
+        player.act()
         worldx = 0
         worldy = 0
 
@@ -1190,7 +1198,8 @@ class Game:
         if ((worldx, worldy) in self.monsters):
             for monster in self.monsters[(worldx, worldy)]:
                 if (monster.getX() == x and monster.getY() == y):
-                    objectsInTile.append(monster.getType())
+                    if (monster.alive()):
+                        objectsInTile.append(monster.getType())
 
         if ((worldx, worldy) in self.Npcs):
             for npc in self.Npcs[(worldx, worldy)]:

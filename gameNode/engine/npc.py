@@ -2,6 +2,7 @@ from random import shuffle
 import configparser
 import json
 import random
+import time
 
 class AiBase:
     # define class for npcs, non violent non player characters
@@ -206,14 +207,34 @@ class Monster(AiBase):
         self.canMove = True
 
 
+        self.deathTime = 0
+        self.respawnDelay = int(self.config[self.type]["respawnDelay"])
+        self.originalHp = self.hp
+
+
+
     def alive(self):
-        if (self.hp <= 0):
-            return False
-        else:
+        if (self.hp > 0):
             return True
+        else:
+            return False
 
     def hit(self, amount):
         self.hp -= amount
+        if (self.hp <= 0):
+            self.deathTime = time.time()
+
+    def respawn(self):
+        self.hp = self.originalHp
+    def canRespawn(self):
+        if (time.time() - self.deathTime >= self.respawnDelay):
+            return True
+        else:
+            return False
+
+
+
+
 
     def getAttack(self):
         return self.attack

@@ -586,7 +586,8 @@ class Player:
             for x in range(-1, 2):
                 if ((self.worldX_ + x, self.worldY_ + y) in monsters):
                     for monster in monsters[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
+                        if (monster.alive()):
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
 
 
         #draw other players
