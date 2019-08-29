@@ -18,7 +18,7 @@ import json
 """
 TODO:
 
-RIVI 639
+RIVI 505
 
 
 
@@ -492,7 +492,7 @@ class Game:
                 if (square not in self.squareAges):
                     self.squareAges[square] = time.time()
             elif (square in self.squareAges):
-                if (time.time() - self.squareAges[square]) <= 10:
+                if (time.time() - self.squareAges[square]) <= 10: #"""muuta tämä conffista luettavaksi luvuksi"""
                     newCache[square] = self.squareCache[square]
         self.squareCache = newCache
 
@@ -502,6 +502,9 @@ class Game:
                 newAgeCache[square] = self.squareAges[square]
         self.squareAges = newAgeCache
 
+        """JATKA TÄSTÄ, muuta allaolevien location tarkastelu squarecacheksi
+            rivi 495 integer pitää lukea conffista, ja olla ~5min?
+        """
 
         print(len(self.squareCache.keys()), len(locations))
 
