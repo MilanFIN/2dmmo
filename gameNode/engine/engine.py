@@ -56,7 +56,7 @@ class Game:
         self.seed = 1254122
 
         self.squareCache = {}  # use as [(x, y): 2Dlist of tiles]
-
+        self.squareAges = {} #use as [(x, y): time that square was last visible]
 
         self.trees = {}  # use as [(x, y): list of trees
         # use as [(x, y): list of shops, only one per island atm
@@ -446,32 +446,64 @@ class Game:
 
         # remove unhabitated squares
         locations = []  # list of worldcoord pairs
+        
         for player in self.allPlayers_.values():
             x = player.getWorldX()
             y = player.getWorldY()
             if ((x, y) not in locations):
                 locations.append((x, y))
+                self.squareAges[(x,y)] = time.time()
             if ((x - 1, y) not in locations):
                 locations.append((x - 1, y))
+                self.squareAges[(x - 1, y)] = time.time()
+
             if ((x + 1, y) not in locations):
                 locations.append((x + 1, y))
+                self.squareAges[(x + 1, y)] = time.time()
+
             if ((x, y - 1) not in locations):
                 locations.append((x, y - 1))
+                self.squareAges[(x, y - 1)] = time.time()
+
             if ((x - 1, y - 1) not in locations):
                 locations.append((x - 1, y - 1))
+                self.squareAges[(x - 1, y - 1)] = time.time()
+
             if ((x + 1, y - 1) not in locations):
                 locations.append((x + 1, y - 1))
+                self.squareAges[(x + 1, y - 1)] = time.time()
+
             if ((x, y + 1) not in locations):
                 locations.append((x, y + 1))
+                self.squareAges[(x, y + 1)] = time.time()
+
             if ((x - 1, y + 1) not in locations):
                 locations.append((x - 1, y + 1))
+                self.squareAges[(x - 1, y + 1)] = time.time()
+
             if ((x + 1, y + 1) not in locations):
                 locations.append((x + 1, y + 1))
+                self.squareAges[(x + 1, y + 1)] = time.time()
+
         newCache = {}
         for square in self.squareCache:
             if (square in locations):
                 newCache[square] = self.squareCache[square]
+                if (square not in self.squareAges):
+                    self.squareAges[square] = time.time()
+            elif (square in self.squareAges):
+                if (time.time() - self.squareAges[square]) <= 10:
+                    newCache[square] = self.squareCache[square]
         self.squareCache = newCache
+
+        newAgeCache = {}
+        for square in self.squareAges:
+            if (square in self.squareCache):
+                newAgeCache[square] = self.squareAges[square]
+        self.squareAges = newAgeCache
+
+
+        print(len(self.squareCache.keys()), len(locations))
 
         # take old gameobjects, and get rid of the ones that are no longer visible in the game area
         newTrees = {}
