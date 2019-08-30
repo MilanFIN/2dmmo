@@ -21,6 +21,12 @@ alerts = []
 loggedPlayersLock = threading.Lock()
 loggedPlayers = []
 
+"""JATKA TÄSTÄ, pelaajat menee tänne jos lähtee, poistetaan täältä kun on ollut 1min poissa
+    Jos kirjautuu ja loginservu heittää already logged in, niin tarkista löytyykö allaolevasta listasta"""
+
+loggedOutPlayersLock = threading.Lock()
+loggedOutPlayers = []
+
 clientsLock = threading.Lock()
 clients = {}
 game = Game()

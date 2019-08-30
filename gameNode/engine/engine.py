@@ -18,8 +18,6 @@ import json
 """
 TODO:
 
-RIVI 505
-
 
 
 
@@ -29,9 +27,7 @@ RIVI 505
 
 ### secondary todo:
 
-#make browser use the same 0.2 second rules as the server, even though mostly pointless
 
-#make trees respawn after a time?, now respawn when area is left
 #faction areas?, rnd, generate enemy levels based on faction area, 1 to nullsec, pvp?
 
 #pringtgamestate shared for multiple worker threads as it's the slowest function to run by far
@@ -53,6 +49,8 @@ class Game:
 
         self.allPlayers_ = {}  # use as playername: Player()
         self.squareSize_ = int(self.config["terrain"]["squareSize"])
+        self.despawnTimeOut = int(self.config["terrain"]["despawnTimeOut"])
+
         self.seed = 1254122
 
         self.squareCache = {}  # use as [(x, y): 2Dlist of tiles]
@@ -492,7 +490,7 @@ class Game:
                 if (square not in self.squareAges):
                     self.squareAges[square] = time.time()
             elif (square in self.squareAges):
-                if (time.time() - self.squareAges[square]) <= 10: #"""muuta tämä conffista luettavaksi luvuksi"""
+                if (time.time() - self.squareAges[square]) <= self.despawnTimeOut: #"""muuta tämä conffista luettavaksi luvuksi"""
                     newCache[square] = self.squareCache[square]
         self.squareCache = newCache
 
@@ -506,48 +504,47 @@ class Game:
             rivi 495 integer pitää lukea conffista, ja olla ~5min?
         """
 
-        print(len(self.squareCache.keys()), len(locations))
 
         # take old gameobjects, and get rid of the ones that are no longer visible in the game area
         newTrees = {}
         for trees in self.trees:
-            if (trees in locations):
+            if (trees in self.squareCache):
                 newTrees[trees] = self.trees[trees]
         self.trees = newTrees
 
         newShops = {}
         for shops in self.shops:
-            if (shops in locations):
+            if (shops in self.squareCache):
                 newShops[shops] = self.shops[shops]
         self.shops = newShops
 
         newBanks = {}
         for banks in self.banks:
-            if (banks in locations):
+            if (banks in self.squareCache):
                 newBanks[banks] = self.banks[banks]
         self.banks = newBanks
 
         newHospitals = {}
         for hosps in self.hospitals:
-            if (hosps in locations):
+            if (hosps in self.squareCache):
                 newHospitals[hosps] = self.hospitals[hosps]
         self.hospitals = newHospitals
 
         newHarbors = {}
         for harbor in self.harbors:
-            if (harbor in locations):
+            if (harbor in self.squareCache):
                 newHarbors[harbor] = self.harbors[harbor]
         self.harbors = newHarbors
 
         newNpcs = {}
         for npc in self.Npcs:
-            if (npc in locations):
+            if (npc in self.squareCache):
                 newNpcs[npc] = self.Npcs[npc]
         self.Npcs = newNpcs
 
         newMonsters = {}
         for monster in self.monsters:
-            if (monster in locations):
+            if (monster in self.squareCache):
                 newMonsters[monster] = self.monsters[monster]
         self.monsters = newMonsters
 
