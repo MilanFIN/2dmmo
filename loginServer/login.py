@@ -177,10 +177,10 @@ class wshandler(tornado.websocket.WebSocketHandler):
                     userdata = cursor.fetchall()
                     #connection.commit()
                     if (userdata == []):
-                        result = {"result": "error", "message": "Wrong username or password."}
+                        result = {"result": "error", "type": "incorrect", "message": "Wrong username or password."}
                         self.ws_connection.write_message(json.dumps(result))
                     elif (name in playersOnline):
-                        result = {"result": "error", "message": "That user is already logged in."}
+                        result = {"result": "error", "type": "duplicate", "name": name, "message": "That user is already logged in."}
                         self.ws_connection.write_message(json.dumps(result))
                     else:
                         name = userdata[0][0]
@@ -194,7 +194,7 @@ class wshandler(tornado.websocket.WebSocketHandler):
                             self.ws_connection.write_message(json.dumps(userdata2))
                             playersOnline[name] = time.time()
                         except Exception:
-                            result = {"result": "error", "message": "Wrong username or password."}
+                            result = {"result": "error", "type": "incorrect", "message": "Wrong username or password."}
                             self.ws_connection.write_message(json.dumps(result))
 
                         #state = json.loads(userdata[0][1])

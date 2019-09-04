@@ -4,7 +4,7 @@ import tornado.websocket
 import json
 import os
 import threading
-from time import sleep
+import time
 from websocket import create_connection
 
 from engine.engine import Game
@@ -21,11 +21,14 @@ alerts = []
 loggedPlayersLock = threading.Lock()
 loggedPlayers = []
 
-"""JATKA TÄSTÄ, pelaajat menee tänne jos lähtee, poistetaan täältä kun on ollut 1min poissa
-    Jos kirjautuu ja loginservu heittää already logged in, niin tarkista löytyykö allaolevasta listasta"""
+reLoggedPlayersLock = threading.Lock()
+reloggedPlayers = {}
 
-loggedOutPlayersLock = threading.Lock()
-loggedOutPlayers = []
+"""
+Pitää vielä handlata tilanne, jossa pelaaja yrittää kirjautua uudelleen ennen timerin umpeutumista
+"""
+idleClientsLock = threading.Lock()
+idleClients = {} # use as [playername: (time, gamestate)]
 
 clientsLock = threading.Lock()
 clients = {}
@@ -39,6 +42,7 @@ nodeName = "Finland 1"
 nodeAddress = "http://localhost:8888"
 #nodeAddress = "https://www.asdf.dy.fi:8888"
 maxPlayers = 300
+logoutTimer = 60
 
 
 
@@ -71,6 +75,20 @@ def updateAI(): #called every second independently from player actions, updates 
                     destination.write_message(json.dumps(message))
 
             loggedPlayers.clear()
+    with reLoggedPlayersLock:
+        with clientsLock:
+            for plr in reloggedPlayers:
+
+                if (len(clients) < maxPlayers):
+                    destination = reloggedPlayers[plr]
+                    clients[destination] = plr
+                    destination.timer_ = tornado.ioloop.PeriodicCallback(destination.updateClient, 200, jitter=0)
+                    destination.timer_.start()
+                else:
+                    message = {"alert": "Server is full"}
+                    destination.write_message(json.dumps(message))
+        reloggedPlayers.clear()
+
 
 
 def backUpGameState():
@@ -110,10 +128,32 @@ class Controls(tornado.websocket.WebSocketHandler):
 
     def masterConnection():
         while True:
+
+            with idleClientsLock:
+                newIdles = {}
+                global idleClients
+
+                for client in idleClients:
+                    if (time.time() - idleClients[client] < logoutTimer):
+                        newIdles[client] = idleClients[client]
+                    else:
+
+                        gamestate = game.getGameState(client)
+                        name = client
+                        ws = create_connection(masterAddress)
+                        message = {"action": "logout", "passphrase": passphrase, "name": name, "gamestate": gamestate}
+                        ws.send(json.dumps(message))
+                        game.removePlayer(client)
+
+                        #print(client, "logged out")
+                idleClients = newIdles
+
+
             if (len(masterSendQue) == 0):
-                sleep(1)
+                time.sleep(1)
             else:
                 message, destination = ("", "")
+                #print(message)
                 with masterSendQueLock:
 
                     #print(masterSendQue)
@@ -137,9 +177,29 @@ class Controls(tornado.websocket.WebSocketHandler):
 
                 elif (userData["result"] == "error"):
                     #print("incorrect username and password")
-                    with alertsLock:
-                        result = ({"alert": userData["message"]}, destination)
-                        alerts.append(result)
+                    if (userData["type"] == "incorrect"):
+                        with alertsLock:
+                            result = ({"alert": userData["message"]}, destination)
+                            alerts.append(result)
+                    elif (userData["type"] == "duplicate" and "name" in userData):
+                        with idleClientsLock:
+                            if (userData["name"] in idleClients):
+
+                                with clientsLock:
+                                    if (userData["name"] not in clients.values()):
+                                        #print("asd")
+
+                                        with reLoggedPlayersLock:
+                                            reloggedPlayers[userData["name"]] = destination
+                                        del idleClients[userData["name"]]       
+                            else:
+                                result = ({"alert": userData["message"]}, destination)
+                                alerts.append(result)
+
+
+
+
+
                         #destination.write_message({"alert": userData["message"]})
 
 
@@ -152,57 +212,65 @@ class Controls(tornado.websocket.WebSocketHandler):
         pass
 
     def updateClient(self): #called every tick, updates player with content
-        game.allowMoving(clients[self])
-
-        xyMap, objectLayer = game.printGameState(clients[self])
-
-        hp = game.getPlayerHp(clients[self])
-
-        size = game.getSize()
-
-        msgs = game.getMessages(clients[self])
-        game.clearMessages(clients[self])
-
-        items = game.getItems(clients[self])
-
-        infoType = "none"
-        infoType = game.getActionStatus(clients[self])
-
-        sellInfo = ""
-        buyInfo = ""
-        bankBalance = ""
-        tradeTargets = []
-        tradeOffer = ""
-        tradeItems = {}
-        textInfo = ""
-        if (infoType == "shop"):
-            sellInfo = game.getShopSell(clients[self])
-            buyInfo = game.getShopBuy(clients[self])
-        elif (infoType == "bank"):
-            bankBalance = game.getBankBalance(clients[self])
-        elif (infoType == "chooseTradeTarget"):
-            tradeTargets = game.getTradeCandidates(clients[self])
-        elif (infoType == "tradeOffer"):
-            tradeOffer = game.getTradeOffer(clients[self])
-        elif (infoType == "tradeOffered"):
-            infoType = "textInfo"
-            textInfo = game.getTextInfo("tradeOffered")
-        elif (infoType == "inTrade"):
-            tradeItems = game.getTradeItems(clients[self])
-            infoType = "inTrade"
 
 
-        wear = game.getWear(clients[self])
+        with clientsLock:
 
-        self.write_message({"map": xyMap, "objects": objectLayer, "size": size, "hp": hp, "messages": msgs,
-                            "inventory": items, "infoType": infoType, "sellInfo": sellInfo,
-                             "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets,
-                              "tradeOffer": tradeOffer, "textInfo": textInfo , "wear": wear, "tradeItems": tradeItems})
+            game.allowMoving(clients[self])
 
+            xyMap, objectLayer = game.printGameState(clients[self])
+
+            hp = game.getPlayerHp(clients[self])
+
+            size = game.getSize()
+
+            msgs = game.getMessages(clients[self])
+            game.clearMessages(clients[self])
+
+            items = game.getItems(clients[self])
+
+            infoType = "none"
+            infoType = game.getActionStatus(clients[self])
+
+            sellInfo = ""
+            buyInfo = ""
+            bankBalance = ""
+            tradeTargets = []
+            tradeOffer = ""
+            tradeItems = {}
+            textInfo = ""
+            if (infoType == "shop"):
+                sellInfo = game.getShopSell(clients[self])
+                buyInfo = game.getShopBuy(clients[self])
+            elif (infoType == "bank"):
+                bankBalance = game.getBankBalance(clients[self])
+            elif (infoType == "chooseTradeTarget"):
+                tradeTargets = game.getTradeCandidates(clients[self])
+            elif (infoType == "tradeOffer"):
+                tradeOffer = game.getTradeOffer(clients[self])
+            elif (infoType == "tradeOffered"):
+                infoType = "textInfo"
+                textInfo = game.getTextInfo("tradeOffered")
+            elif (infoType == "inTrade"):
+                tradeItems = game.getTradeItems(clients[self])
+                infoType = "inTrade"
+
+
+            wear = game.getWear(clients[self])
+
+        try:
+            self.write_message({"map": xyMap, "objects": objectLayer, "size": size, "hp": hp, "messages": msgs,
+                                "inventory": items, "infoType": infoType, "sellInfo": sellInfo,
+                                "buyInfo": buyInfo, "bankBalance": bankBalance, "tradeTargets": tradeTargets,
+                                "tradeOffer": tradeOffer, "textInfo": textInfo , "wear": wear, "tradeItems": tradeItems})
+        except tornado.websocket.WebSocketClosedError:
+            self.on_close
 
 
     def on_message(self, message):
         #print(asd.getMap())
+
+
         parsed_msg = json.loads(message)
 
 
@@ -218,30 +286,6 @@ class Controls(tornado.websocket.WebSocketHandler):
             with masterSendQueLock:
                 masterSendQue.append((message, self))
 
-
-            """
-            ws.send(json.dumps(message))
-            result =  ws.recv()
-            userData = json.loads(result)
-            print(userData)
-            ws.close()
-            if (userData["result"] == "login"):
-                #print("Received '%s'" % result)
-                if (parsed_msg["name"] not in clients.values() and "name" in userData):
-                    clients[self] = parsed_msg["name"]
-
-
-                    #game.addPlayer(parsed_msg["name"])
-
-                    game.addExistingPlayer(userData)
-
-                    self.timer_ = tornado.ioloop.PeriodicCallback(self.updateClient, 200, jitter=0)
-
-                    self.timer_.start()
-            elif (userData["result"] == "error"):
-                print("incorrect username and password")
-                self.write_message({"alert": userData["message"]})
-            """
 
 
         if (parsed_msg["action"] == "moveRight"):
@@ -368,32 +412,36 @@ class Controls(tornado.websocket.WebSocketHandler):
 
         with clientsLock:
             if (self in clients):
-                gamestate = game.getGameState(clients[self])#json.dumps(game.getGameState(clients[self]))
-                #print(gamestate)
-                name = clients[self]
 
+                with idleClientsLock:
+                    # playername, logouttime
+                    idleClients[clients[self]] =  time.time()
+
+
+                #moved to different place?
+                """
+                gamestate = game.getGameState(clients[self])
+                name = clients[self]
                 ws = create_connection(masterAddress)
                 message = {"action": "logout", "passphrase": passphrase, "name": name, "gamestate": gamestate}
                 ws.send(json.dumps(message))
+                game.removePlayer(clients[self])
+                """
+
+                del clients[self]
+                self.timer_.stop()
+
+
 
         with loggedPlayersLock:
             for plr in loggedPlayers:
                 if (plr[1] == self):
-                    a.remove(plr)
+                    loggedPlayers.remove(plr)
+                    break
+
+            
 
 
-
-            try:
-                game.removePlayer(clients[self])
-            except Exception:
-                pass
-
-            try:
-                del clients[self]
-                #print("Player left")
-            except KeyError:
-                #print("Player left, but nobody cares as they never registered")
-                pass
             try:
                 self.timer_.stop()
             except Exception:
