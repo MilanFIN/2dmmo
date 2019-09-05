@@ -455,10 +455,12 @@
 
 
                 document.getElementById("wearInfo").innerHTML = "Wearing: <br>";
+                console.log(data.wear)
                 for (var i = 0; i < data.wear.length; i++) {
-                    document.getElementById("wearInfo").innerHTML += data.wear[i] + "<br>" ;
-
-
+                    document.getElementById("wearInfo").innerHTML += data.wear[i]  +" ";
+                    if (i  % 2 === 1){
+                        document.getElementById("wearInfo").innerHTML + "<br>";
+                    }
                 }
 
 

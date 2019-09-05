@@ -376,11 +376,7 @@ class Player:
         self.onLand = not self.onLand
 
     def wearItem(self, item):
-        if (not items.itemWearable(item)):
-            return
-        else:
-
-            self.wear.changeItem(items.getWearType(item), item, items.getWearBonus(item))
+        self.wear.changeItem(item) #(items.getWearType(item), item, items.getWearBonus(item))
 
 
     def canMove(self, tile):

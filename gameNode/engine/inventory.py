@@ -2,6 +2,7 @@ from engine.items import *
 
 import copy
 import configparser
+from engine.items import *
 
 
 class Inventory:
@@ -107,9 +108,13 @@ class playerWear:
         self.attackBonus = 0
         self.shipType = ""
         self.shipBonus = 0
+        self.maxCannon = 0
+        self.cannonType = ""
+        self.cannonBonus = 0
+
 
     def getWear(self):
-        wear = [self.armorType, self.attackType, self.shipType]
+        wear = [self.armorType, self.attackType, self.shipType, self.cannonType]
         return wear
 
     def resetAll(self):
@@ -119,8 +124,14 @@ class playerWear:
         self.attackBonus = 0
         self.shipType = ""
         self.shipBonus = 0
+        self.maxCannon = 0
+        self.cannonType = ""
+        self.cannonBonus = 0
 
-    def removeIfWorn(self, item):
+    def removeIfWorn(self, itemName):
+        if (not items.itemWearable(itemName)):
+            return
+        item = itemName
         if (item == self.armorType):
             self.armorType = ""
             self.armorBonus = 0
@@ -130,8 +141,19 @@ class playerWear:
         elif (item == self.shipType):
             self.shipType = ""
             self.ShipBonus = 0
+            self.cannonType = ""
+            self.cannonBonus = 0
+        elif (item == self.cannonType):
+            self.cannonType = ""
+            self.cannonBonus = 0
 
-    def changeItem(self, itemType, itemName, bonus):
+
+    def changeItem(self, itemName):
+        if (not items.itemWearable(itemName)):
+            return
+
+        itemType = items.getWearType(itemName)
+        bonus = items.getWearBonus(itemName)
 
         if (itemType == "armor"):
             self.armorType = itemName
@@ -142,24 +164,36 @@ class playerWear:
         if (itemType == "ship"):
             self.shipType = itemName
             self.shipBonus = bonus
+            self.maxCannon = items.getMaxCannonSize(itemName)
+        if (itemType == "cannon"):
+            print("trying to wear a cannon")
+            if (items.getCannonSize(itemName) <= self.maxCannon):
+                self.cannonBonus = items.getCannonSize(itemName)
+                self.cannonType = itemName
 
+    def getShipDefBonus(self):
+        return self.shipBonus
+    def getCannonBonus(self):
+        return self.cannonBonus
+    def getArmorBonus(self):
+        return self.armorBonus
+    def getAttackBonus(self):
+        return self.attackBonus
+
+
+    """
     def changeShip(self, shipName, bonus):
         self.shipType = shipName
         self.shipBonus = bonus
     def resetShip(self):
         self.shipType = ""
         self.shipBonus = 0
-    def getShipDefBonus(self):
-        return self.shipBonus
-
     def changeArmor(self, armorName, bonus):
         self.armorType = armorName
         self.armorBonus = bonus
     def resetArmor(self):
         self.armorType = ""
         self.armorBonus = 0
-    def getArmorBonus(self):
-        return self.armorBonus
 
     def changeAttack(self, attackName, bonus):
         self.attackType = attackName
@@ -167,25 +201,6 @@ class playerWear:
     def resetAttack(self):
         self.attackType = ""
         self.attackBonus = 0
-    def getAttackBonus(self):
-        return self.attackBonus
+    """
 
 
-
-
-"""
-inv = Inventory()
-inv.addItem("tree")
-print(inv.getInventorySize())
-
-inv.addItem("tree")
-print(inv.getInventorySize())
-
-inv.removeItem("tree")
-
-print(inv.getInventorySize())
-inv.removeItem("tree")
-print(inv.getInventorySize())
-inv.removeItem("tree")
-print(inv.getInventorySize())
-"""
