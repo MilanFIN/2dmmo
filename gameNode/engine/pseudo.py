@@ -83,6 +83,18 @@ class Pseudo:
 
         tileNumber = chunkSeed % 170767 % landTileCount
         return tileNumber
+    
+    def getNumberInRangeByLocation(self, min, max, x, y, seed):
+        if (min == max):
+            return min
+        chunkSeed = seed
+        if (x != 0):
+            chunkSeed = chunkSeed * x + chunkSeed // x
+        if (y != 0):
+            chunkSeed = chunkSeed * y + chunkSeed // y
+        #print(chunkSeed)
+        chunkSeed = chunkSeed % 1001 % (max-min)
+        return chunkSeed
 
 
 

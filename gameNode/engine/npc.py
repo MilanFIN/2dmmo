@@ -3,10 +3,11 @@ import configparser
 import json
 import random
 import time
+from engine.pseudo import *
 
 class AiBase:
     # define class for npcs, non violent non player characters
-    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand):
+    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand, seed):
 
         self.allowedTerrain = "."
         self.unAllowedTerrain = "x"
@@ -98,7 +99,7 @@ class AiBase:
 
 class Npc(AiBase):
     # define class for npcs, non violent non player characters
-    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand):
+    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand, seed):
         self.name_ = name
         self.worldx_ = worldx
         self.worldy_ = worldy
@@ -122,7 +123,11 @@ class Npc(AiBase):
                 weight = int(self.config[i]["probabilityFactor"])
                 for j in range(weight):
                     choiceList.append(i)
-        self.type = random.choice(choiceList)
+
+        
+        #self.type = random.choice(choiceList)
+        self.type = choiceList[pseudo.getNumberInRangeByLocation(0, len(choiceList), worldx, worldy, seed)]
+
 
 
         self.AllowedTerrain = ""
@@ -150,7 +155,7 @@ class Npc(AiBase):
 
 class Monster(AiBase):
     # define hostile npc class
-    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand):
+    def __init__(self, name, worldx, worldy, x, y, worldSize, onLand, seed):
 
         self.name_ = name
         self.worldx_ = worldx
@@ -175,7 +180,9 @@ class Monster(AiBase):
                 weight = int(self.config[i]["probabilityFactor"])
                 for j in range(weight):
                     choiceList.append(i)
-        self.type = random.choice(choiceList)
+
+        #self.type = random.choice(choiceList)
+        self.type = choiceList[pseudo.getNumberInRangeByLocation(0, len(choiceList), worldx, worldy, seed)]
 
 
 

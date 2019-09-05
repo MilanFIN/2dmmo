@@ -391,10 +391,11 @@ class Game:
 
 
             location = entireLayer[tileNumber]
+
             onLand = False
 
         self.Npcs[square] = [
-            Npc("asd", square[0], square[1], location[0], location[1], self.squareSize_, onLand)]
+            Npc("asd", square[0], square[1], location[0], location[1], self.squareSize_, onLand, self.seed)]
 
     def generateMonster(self, square):
         possibleLocations = []
@@ -427,7 +428,7 @@ class Game:
 
 
         self.monsters[square] = [
-            Monster("asd", square[0], square[1], location[0], location[1], self.squareSize_, onLand)]
+            Monster("asd", square[0], square[1], location[0], location[1], self.squareSize_, onLand, self.seed)]
 
     def updateSquareCache(self):
         """update cache of gamesquares, and remove and create gameobjects for new/old squares
