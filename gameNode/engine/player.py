@@ -201,8 +201,11 @@ class Player:
 
     def getAttack(self):
 
+        if (self.onLand):
+            return self.attack + self.wear.getAttackBonus()
+        else:
+            return self.attack + self.wear.getCannonBonus()
 
-        return self.attack + self.wear.getAttackBonus()
     def getCounterAttack(self):
         return self.counterAttack
 

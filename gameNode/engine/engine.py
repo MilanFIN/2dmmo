@@ -891,12 +891,12 @@ class Game:
                         opponent.addMessage(
                             "Game", player.getName() + " hit you and did " + str(damageDone) + " damage.")
 
-                        if (opponent.alive()):
-                            damageTaken = player.hit(opponent.getCounterAttack())
-                            player.addMessage(
-                                "Game", opponent.getName() + " countered with " + str(damageTaken) + " damage.")
-                            opponent.addMessage(
-                                "Game", "You countered with " + str(damageTaken) + " damage.")
+                        #if (opponent.alive()):
+                            #damageTaken = player.hit(opponent.getCounterAttack())
+                            #player.addMessage(
+                            #    "Game", opponent.getName() + " countered with " + str(damageTaken) + " damage.")
+                            #opponent.addMessage(
+                            #    "Game", "You countered with " + str(damageTaken) + " damage.")
 
                         if (not opponent.alive()):
                             player.addMessage(
