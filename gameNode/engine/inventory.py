@@ -111,6 +111,7 @@ class playerWear:
         self.maxCannon = 0
         self.cannonType = ""
         self.cannonBonus = 0
+        self.cannonSize = 0
 
 
     def getWear(self):
@@ -127,6 +128,7 @@ class playerWear:
         self.maxCannon = 0
         self.cannonType = ""
         self.cannonBonus = 0
+        self.cannonSize
 
     def removeIfWorn(self, itemName):
         if (not items.itemWearable(itemName)):
@@ -141,11 +143,14 @@ class playerWear:
         elif (item == self.shipType):
             self.shipType = ""
             self.ShipBonus = 0
+            self.maxCannon = 0
             self.cannonType = ""
             self.cannonBonus = 0
+            self.cannonSize = 0
         elif (item == self.cannonType):
             self.cannonType = ""
             self.cannonBonus = 0
+            self.cannonSize
 
 
     def changeItem(self, itemName):
@@ -165,11 +170,16 @@ class playerWear:
             self.shipType = itemName
             self.shipBonus = bonus
             self.maxCannon = items.getMaxCannonSize(itemName)
+            if (self.cannonSize > self.maxCannon):
+                self.cannonType = ""
+                self.cannonBonus = 0
+                self.cannonSize = 0
+
         if (itemType == "cannon"):
-            print("trying to wear a cannon")
             if (items.getCannonSize(itemName) <= self.maxCannon):
-                self.cannonBonus = items.getCannonSize(itemName)
+                self.cannonBonus = items.getWearBonus(itemName)
                 self.cannonType = itemName
+                self.cannonSize = items.getCannonSize(itemName)
 
     def getShipDefBonus(self):
         return self.shipBonus

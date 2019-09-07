@@ -103,9 +103,7 @@ class Shop(GameObject):
             for j in range(weight):
                 choiceList.append(i)
 
-        
         self.type = choiceList[pseudo.getNumberInRangeByLocation(0, len(choiceList), worldx, worldy, seed)]
-
 
         self.character = self.config[self.type]["character"]
         self.shopItems = json.loads(self.config[self.type]["items"])
