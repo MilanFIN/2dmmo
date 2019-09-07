@@ -272,7 +272,7 @@ class Game:
         tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
 
         self.shops[square] = [
-            Shop(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+            Shop(groundTiles[tileNumber][0], groundTiles[tileNumber][1], square[0], square[1], self.seed)]
 
     def generateBank(self, square):
         baseLayer = self.squareCache[square]
@@ -808,7 +808,7 @@ class Game:
                         player.goToShop()
                         player.goToBuilding()
 
-                        player.addMessage("Game", "You enter a shop.")
+                        player.addMessage("Game", "You visit a " + shop.getType() + ".")
                     return
 
         #handle npcs
@@ -1201,7 +1201,7 @@ class Game:
         if ((worldx, worldy) in self.shops):
             for shop in self.shops[(worldx, worldy)]:
                 if (shop.getX() == x and shop.getY() == y):
-                    objectsInTile.append("shop")
+                    objectsInTile.append(shop.getType())
 
         #handle different stuff
         if ((worldx, worldy) in self.harbors):

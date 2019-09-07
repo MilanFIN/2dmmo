@@ -321,7 +321,7 @@
                     prevInfo = JSON.stringify(data.sellInfo) + JSON.stringify(data.buyInfo) + JSON.stringify(data.bankBalance) + JSON.stringify(data.inventory) + JSON.stringify(data.tradeTargets) + JSON.stringify(data.tradeOffer) + JSON.stringify(data.textInfo)   + JSON.stringify(data.wear) + JSON.stringify(data.tradeItems)
                     document.getElementById("info").innerHTML = ""
                     if (data.infoType == "shop"){
-                        document.getElementById("info").innerHTML = "Item: sellvalue <br>"
+                        document.getElementById("info").innerHTML = "Sell: <br>"
 
                         for (var item in data.sellInfo) {
                             if (data.sellInfo.hasOwnProperty(item)) {
@@ -330,7 +330,7 @@
 
                             }
                         }
-                        document.getElementById("info").innerHTML += "Item: buyvalue <br>"
+                        document.getElementById("info").innerHTML += "Buy: <br>"
                         for (var item in data.buyInfo) {
                             if (data.buyInfo.hasOwnProperty(item)) {
                                 var button = "<button type='button' onclick=buyItem('"+item+"');>Buy</button>";

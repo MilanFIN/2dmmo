@@ -89,23 +89,36 @@ class Resource(GameObject):
 
 
 class Shop(GameObject):
-    def __init__(self, x, y):
+    def __init__(self, x, y, worldx, worldy, seed):
         self.config = configparser.ConfigParser()
         self.config.read("./engine/config.cfg")
-        self.character = self.config["shop"]["character"]
 
 
-        self.shopItems = json.loads(self.config["shop"]["items"])
 
+
+        possibleTypes = json.loads(self.config["shopTypes"]["types"])
+        choiceList = []
+        for i in possibleTypes:
+            weight = int(self.config[i]["probabilityFactor"])
+            for j in range(weight):
+                choiceList.append(i)
+
+        
+        self.type = choiceList[pseudo.getNumberInRangeByLocation(0, len(choiceList), worldx, worldy, seed)]
+
+
+        self.character = self.config[self.type]["character"]
+        self.shopItems = json.loads(self.config[self.type]["items"])
+        self.allItems = json.loads(self.config["allItems"]["types"])
 
         self.sellValues = {}  # use as item:value
         self.buyValues = {}
 
 
         for i in self.shopItems:
-            self.sellValues[i] = int(self.config[i]["sellPrice"])
             self.buyValues[i] = int(self.config[i]["buyPrice"])
-
+        for i in self.allItems:
+            self.sellValues[i] = int(self.config[i]["sellPrice"])
 
         #self.sellValues["log"] = int(self.config["log"]["sellPrice"])
         #self.buyValues["log"] = int(self.config["log"]["buyPrice"])
@@ -114,6 +127,9 @@ class Shop(GameObject):
 
         self.x = x
         self.y = y
+
+    def getType(self):
+        return self.type
 
     def getBuyPrices(self):
         return self.buyValues
