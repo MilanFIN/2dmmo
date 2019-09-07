@@ -4,7 +4,7 @@
 A python based in browser mmo with ascii based graphics.
 The world is "round" and populated by islands with npc characters on them.
 
-### game systems that have been somewhat implemented
+### these features already work
 - A seed based generation for islands, npcs and monsters
 - Multiplayer support with pvp, chat and trading
 - Harvesting resources such as woodcutting and mining
@@ -16,11 +16,11 @@ The world is "round" and populated by islands with npc characters on them.
 
 
 
-### in progress
--weapons for ships
+### these are under construction
+- different types of shops, each specializing in specific item types
+- food to recover health, harvesting and buying it
 
-### todo
-- different types of shops, each specializing in specific item types etc
+### future ideas
 - different types of areas such as civilized and monster populated areas, restrict specific npc and monster types to these areas
 - map that shows positions of islands and the types of the areas, possibly represented by assigning 1 pixel to 1 tile
 - islands that are larger than one gametile?
