@@ -440,7 +440,7 @@
                     for (var i = 0; i < itemNames.length; i++) {
                         document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
                         if (data.inventory[itemNames[i]][1] === true) {
-                            var button = "<button type='button' onclick=wear('"+itemNames[i]+"');>Wear</button>";
+                            var button = "<button type='button' onclick=use('"+itemNames[i]+"');>Use</button>";
 
                             document.getElementById("inventory").innerHTML += button;
                         }
@@ -585,13 +585,13 @@
 
         };
 
-        function wear(itemName) {
+        function use(itemName) {
             var actionTimeStamp = +new Date();
             if (actionTimeStamp - lastActionTimeStamp <= actionDelay) {
                 return
             }
             lastActionTimeStamp = actionTimeStamp;
-            var jiison = { action: "wearItem", "item": itemName};
+            var jiison = { action: "useItem", "item": itemName};
             var payload = JSON.stringify(jiison);
             controlSocket.send(payload);
         }

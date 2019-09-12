@@ -1013,9 +1013,9 @@ class Game:
                         player.addMessage(
                             "Game", "You sold a " + item + " for " + str(value) + " gold.")
 
-    def wearItem(self, playerName, item):
+    def useItem(self, playerName, item):
         player = self.allPlayers_[playerName]
-        player.wearItem(item)
+        player.useItem(item)
     def unWearAll(self, playerName):
         player = self.allPlayers_[playerName]
         player.wear.resetAll()

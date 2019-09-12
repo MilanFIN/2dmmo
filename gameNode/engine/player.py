@@ -254,6 +254,13 @@ class Player:
             self.hp = hp
         else:
             self.hp = self.maxHp
+    def heal(self, amount):
+        if (amount < 0):
+            return
+        elif (self.hp + amount <= self.maxHp):
+            self.hp += amount
+        else:
+            self.hp = self.maxHp
 
     def fight(self):
         self.inFight = self.fightTime
@@ -378,8 +385,18 @@ class Player:
     def useHarbor(self):
         self.onLand = not self.onLand
 
-    def wearItem(self, item):
-        self.wear.changeItem(item) #(items.getWearType(item), item, items.getWearBonus(item))
+    def useItem(self, item):
+        wearType = items.getWearType(item)
+        if (item not in self.inventory.getPhysicalItems().keys()):
+            return
+        elif (wearType == "none"):
+            return
+        elif (wearType == "food"):
+            self.heal(items.getWearBonus(item))
+            self.inventory.removeItem(item)
+            self.addMessage("Game", "You ate a "+item+".")
+        else:
+            self.wear.changeItem(item) #(items.getWearType(item), item, items.getWearBonus(item))
 
 
     def canMove(self, tile):
