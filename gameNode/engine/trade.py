@@ -94,6 +94,10 @@ class Trade:
             self.secondGold = 0
         else:
             self.secondGold -= amount
+    def unAccept(self):
+        self.firstAccept = False
+        self.secondAccept = False
+
 
 
 class Trades:
@@ -128,6 +132,13 @@ class Trades:
                 self.trades[comb].acceptSecond()
         else:
             return
+    
+    def unAccept(self, name1, name2):
+        if ((name1, name2) in self.trades):
+            return self.trades[name1, name2].unAccept()
+        elif ((name2, name1) in self.trades):
+            return self.trades[name2, name1].unAccept()
+
 
     def tradeAccepted(self, name1, name2):
         if ((name1, name2) in self.trades):

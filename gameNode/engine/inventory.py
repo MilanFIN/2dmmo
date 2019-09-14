@@ -9,6 +9,11 @@ class Inventory:
     def __init__(self):
         self.items = {}  # use as item:count
         self.gold = 0
+        self.config = configparser.ConfigParser()
+
+        self.config.read("./engine/config.cfg")
+
+        self.size = int(self.config["player"]["inventorySize"])
 
 
     def setInventory(self, inv):
@@ -28,6 +33,8 @@ class Inventory:
         return self.gold
 
     def addItem(self, itemName):
+        if (self.getInventorySize() == self.size):
+            return
         if (itemName in self.items):
             self.items[itemName] += 1
         else:
@@ -38,6 +45,9 @@ class Inventory:
             self.items[itemName] -= 1
             if (self.items[itemName] <= 0):
                 self.items.pop(itemName)
+
+    def getMaxSize(self):
+        return self.size
 
     def getInventorySize(self):
         return sum(self.items.values())

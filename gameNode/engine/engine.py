@@ -442,6 +442,16 @@ class Game:
                 player.respawn()
 
 
+        #remove players from trades that don't exist anymore
+        for player in self.allPlayers_.values():
+            if (player.isInTrade()):
+                playerName = player.getName()
+                opp = self.trades.getOpponent(playerName)
+                if (opp != None):
+                    if (not self.allPlayers_[opp].isInTrade()):
+                        player.leaveTrade()
+                        self.trades.removeTrade(playerName, opp)
+
 
         # remove unhabitated squares
         locations = []  # list of worldcoord pairs
@@ -1075,6 +1085,27 @@ class Game:
                     #dealing with moving the items
                     opp = self.allPlayers_[opponent]
                     tradeState = self.trades.getTradeState(playerName, opponent)
+                    #figure out if enough room in both inventories
+
+                    print(tradeState)
+                    
+                    if (tradeState[2] != {}):
+                        if (player.inventory.getInventorySize() + sum(tradeState[2].values()) > player.inventory.getMaxSize()):
+                            player.addMessage("Game","You don't have enough room in your inventory.")
+                            opp.addMessage("Game", playerName + " doesn't have enough room in their inventory.")
+                            self.trades.unAccept(playerName, opponent)
+                            return
+                    if (tradeState[0] != {}):
+                        if (opp.inventory.getInventorySize() + sum(tradeState[0].values()) > opp.inventory.getMaxSize()):
+                            opp.addMessage("Game","You don't have enough room in your inventory.")
+                            player.addMessage("Game", opponent + " doesn't have enough room in their inventory.")
+                            self.trades.unAccept(playerName, opponent)
+
+                            return
+                    
+
+
+
                     player.inventory.removeGold(tradeState[1])
                     opp.inventory.addGold(tradeState[1])
 
