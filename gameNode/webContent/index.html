@@ -436,7 +436,19 @@
                     var itemNames = Object.keys(data.inventory);
 
                     //console.log(data.inventory)
-                    document.getElementById("inventory").innerHTML = "inventory: <br>";
+                    document.getElementById("inventory").innerHTML = "inventory: ";
+                    if (tileNums.hasOwnProperty("maxInventorySize")) {
+                        var totalItems = 0;
+                        for (var i = 0; i < itemNames.length; i++) {
+                            if (itemNames[i] != "gold"){
+                                totalItems += data.inventory[itemNames[i]][0];
+                            }
+                        }
+
+
+                        document.getElementById("inventory").innerHTML +=  totalItems.toString()+ "/" +tileNums["maxInventorySize"];
+                    }
+                    document.getElementById("inventory").innerHTML += "<br>"
                     for (var i = 0; i < itemNames.length; i++) {
                         document.getElementById("inventory").innerHTML += itemNames[i] + ": " + data.inventory[itemNames[i]][0] + " "
                         if (data.inventory[itemNames[i]][1] === true) {
@@ -455,7 +467,6 @@
 
 
                 document.getElementById("wearInfo").innerHTML = "Wearing: <br>";
-                console.log(data.wear)
                 for (var i = 0; i < data.wear.length; i++) {
                     document.getElementById("wearInfo").innerHTML += data.wear[i]  +" ";
                     if (i  % 2 === 1){

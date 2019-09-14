@@ -842,6 +842,9 @@ class Game:
                             player.addMessage(
                                 "Game", "You " + tree.getDeathNote() + ".")
                             for i in range(tree.dropAmount()):
+                                if (player.inventory.isFull()):
+                                    player.addMessage("Game", "Your inventory is full.")
+                                    break
                                 player.addItemToInv(tree.dropType())
 
                             #self.trees[(x, y)].remove(tree)
@@ -938,6 +941,10 @@ class Game:
                                 player.addGold(monster.dropAmount())
                             else:
                                 for i in range(monster.dropAmount()):
+                                    if (player.inventory.isFull()):
+                                        player.addMessage("Game", "Your inventory is full.")
+                                        break
+
                                     player.addItemToInv(monster.dropType())
                             #self.monsters[(x, y)].remove(monster)
                         else:
@@ -981,6 +988,9 @@ class Game:
         # buy a item for the player and reduce the amount of money it costs from them
         # won't do anything if the player is not in a shop or the shop doesn't carry teh item
         player = self.allPlayers_[playerName]
+        if (player.inventory.isFull()):
+            player.addMessage("Game", "Your inventory is full.")
+            return
         if (player.isInShop()):
             x = player.getWorldX()
             y = player.getWorldY()

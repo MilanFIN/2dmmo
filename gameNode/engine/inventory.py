@@ -22,7 +22,8 @@ class Inventory:
         if (amt >= 0):
             self.gold = amt
 
-
+    def isFull(self):
+        return self.getInventorySize() >= self.size
     def addGold(self, amount):
         self.gold += amount
 

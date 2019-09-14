@@ -54,6 +54,8 @@
 
     "islandTypes": ["x"],
     "playerTypes": ["@", "Y"],
+    
+    "maxInventorySize": 50,
 
    "_comment": "x1 upper left edge of island, x2 upper, x3 upper right etc, middle is defined on x",
    "_comment2": "x10 -x13 are the ones sticking out, x10 up, x11 right, x12 left, x13 down",
