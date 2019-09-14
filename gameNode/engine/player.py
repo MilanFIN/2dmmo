@@ -394,7 +394,7 @@ class Player:
         elif (wearType == "food"):
             self.heal(items.getWearBonus(item))
             self.inventory.removeItem(item)
-            self.addMessage("Game", "You ate a "+item+".")
+            self.addMessage("Game", "You ate "+item+".")
         else:
             self.wear.changeItem(item) #(items.getWearType(item), item, items.getWearBonus(item))
 
