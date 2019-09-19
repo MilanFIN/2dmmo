@@ -190,3 +190,12 @@ class Hospital(GameObject):
         self.character = self.config["hospital"]["character"]
         self.x = x
         self.y = y
+
+class DungeonEntrance(GameObject):
+    def __init__(self, x, y):
+        self.config = configparser.ConfigParser()
+        self.config.read("./engine/config.cfg")
+        self.character = self.config["dungeonEntrance"]["character"]
+        self.x = x
+        self.y = y
+

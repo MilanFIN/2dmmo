@@ -64,6 +64,7 @@ class Game:
         # use as [(x, y): list of harbors, only one per island
         self.harbors = {}
         self.hospitals = {}
+        self.dungeonEntrances = {}
         self.Npcs = {}
         self.monsters = {}
 
@@ -260,15 +261,6 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
-        """
-        chunkSeed = self.seed
-        if (square[0] != 0):
-            chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
-        if (square[1] != 0):
-            chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
-
-        tileNumber = chunkSeed % 170767 % len(groundTiles)
-        """
         tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
 
         self.shops[square] = [
@@ -286,15 +278,6 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
-        """
-        chunkSeed = self.seed
-        if (square[0] != 0):
-            chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
-        if (square[1] != 0):
-            chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
-
-        tileNumber = chunkSeed % 170767 % len(groundTiles)
-        """
         tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
 
 
@@ -314,19 +297,28 @@ class Game:
         if (len(groundTiles) == 0):  # no available spots
             return
 
-        """
-        chunkSeed = self.seed
-        if (square[0] != 0):
-            chunkSeed = chunkSeed * square[0] + chunkSeed // square[0]
-        if (square[1] != 0):
-            chunkSeed = chunkSeed * square[1] + chunkSeed // square[1]
-
-        tileNumber = chunkSeed % 170767 % len(groundTiles)
-        """
         tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
 
         self.hospitals[square] = [
             Hospital(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
+
+
+    def generateDungeonEntrance(self, square):
+        baseLayer = self.squareCache[square]
+        groundTiles = []
+        for y in range(len(baseLayer)):
+            for x in range(len(baseLayer[y])):
+                if (baseLayer[y][x] == self.ground):
+                    if (self.checkSurroundingTileCount(baseLayer, self.ground, x, y) >= 3):
+                        groundTiles.append((x, y))
+
+        if (len(groundTiles) == 0):  # no available spots
+            return
+
+        tileNumber = pseudo.buildingLocation(len(groundTiles), square[0], square[1], self.seed)
+
+        self.dungeonEntrances[square] = [
+            DungeonEntrance(groundTiles[tileNumber][0], groundTiles[tileNumber][1])]
 
 
 
@@ -583,12 +575,14 @@ class Game:
                     #xseed = self.seed + square[0] % 1000001
                     #yseed = self.seed - square[1] % 1000003
                     #objectSeed = (xseed + yseed) % 3
-                    objectSeed = pseudo.inRange(3, square[0], square[1], self.seed)
+                    objectSeed = pseudo.inRange(4, square[0], square[1], self.seed)
 
                     if (objectSeed == 0):
                         self.generateBank(square)
                     elif (objectSeed == 1):
                         self.generateShop(square)
+                    elif (objectSeed == 2):
+                        self.generateDungeonEntrance(square)
                     else:
                         self.generateHospital(square)
 
@@ -691,7 +685,7 @@ class Game:
 
     def printGameState(self, playerName):  # again bad name, just returns stuff
         # get a gameview of the specified player
-        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.hospitals, self.harbors)
+        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.hospitals, self.harbors, self.dungeonEntrances)
 
     def getActionStatus(self, playerName):
         # get the state of info that needs to be shown to the player
@@ -819,6 +813,17 @@ class Game:
                         player.goToBuilding()
 
                         player.addMessage("Game", "You visit a " + shop.getType() + ".")
+                    return
+        
+        # handle dungeon entrances
+        if ((x, y) in self.dungeonEntrances):
+            for dE in self.dungeonEntrances[(x, y)]:
+                if (dE.getX() == player.getX() and dE.getY() == player.getY()):
+                    if (not player.isInBuilding()):
+                        player.act()
+                        player.goToBuilding()
+                        #remove isinbuilding, add underworld.
+                        player.addMessage("Game", "You enter a dungeon.")
                     return
 
         #handle npcs

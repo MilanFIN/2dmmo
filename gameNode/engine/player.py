@@ -502,14 +502,13 @@ class Player:
         self.resetTradeCandidates()
 
 
-    def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, hospitals, harbors):
+    def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, hospitals, harbors, dungeonEntrances):
         #returns the gamemap the player sees as a 2d array
         #populates the map with all different gameobjects on their right places
 
         #areatoprint is the maplayer, objectlayer is for objects such as resources and players
         areaToPrint = [[self.sea for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
         objectLayer = [[self.empty for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
-
         self.neightbors_ = []
 
 
@@ -581,6 +580,12 @@ class Player:
                 if ((self.worldX_ + x, self.worldY_ + y) in hospitals):
                     for hosp in hospitals[(self.worldX_ + x, self.worldY_ + y)]:
                         objectLayer[y * self.squareSize_ + self.squareSize_ + hosp.getY()][x * self.squareSize_ + self.squareSize_ + hosp.getX()] = hosp.getCharacter()
+        
+        for y in range(-1, 2):
+            for x in range(-1, 2):
+                if ((self.worldX_ + x, self.worldY_ + y) in dungeonEntrances):
+                    for dE in dungeonEntrances[(self.worldX_ + x, self.worldY_ + y)]:
+                        objectLayer[y * self.squareSize_ + self.squareSize_ + dE.getY()][x * self.squareSize_ + self.squareSize_ + dE.getX()] = dE.getCharacter()
 
         #harbors
         for y in range(-1, 2):
