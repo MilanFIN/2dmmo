@@ -198,4 +198,8 @@ class DungeonEntrance(GameObject):
         self.character = self.config["dungeonEntrance"]["character"]
         self.x = x
         self.y = y
-
+        self.type = self.config["dungeonEntrance"]["dungeonType"]
+    def getId(self):
+        return "x:"+str(self.x)+"y:"+str(self.y)+"dungeon"
+    def getType(self):
+        return self.type

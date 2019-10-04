@@ -188,6 +188,14 @@ class Player:
         self.tradeOffered = ""
 
         self.onLand = True
+
+
+
+        self.inDungeon = False
+        self.dungeonId = ""
+        self.dX = 0
+        self.dY = 0
+
     def getName(self):
         return self.name_
     def getWorldX(self):
@@ -400,6 +408,10 @@ class Player:
 
 
     def canMove(self, tile):
+
+        if (self.inDungeon):
+            return True
+
         if (self.onLand and tile == self.ground):
             return True
         elif (not self.onLand and tile == self.sea):
@@ -502,7 +514,23 @@ class Player:
         self.resetTradeCandidates()
 
 
-    def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, hospitals, harbors, dungeonEntrances):
+
+    def goToDungeon(self, id):
+        self.inDungeon = True
+        self.dungeonId = id
+    def leaveDungeon(self):
+        self.inDungeon = False
+        self.dungeonId = ""
+    def isInDungeon(self):
+        return self.inDungeon
+    def getDungeonId(self):
+        return self.dungeonId
+    def setDungeonPosition(self, x, y):
+        self.dX = x
+        self.dY = y
+    
+
+    def printLocation(self, allPlayers, npcs, monsters, cache, trees, shops, banks, hospitals, harbors, dungeonEntrances, dungeons):
         #returns the gamemap the player sees as a 2d array
         #populates the map with all different gameobjects on their right places
 
@@ -511,131 +539,135 @@ class Player:
         objectLayer = [[self.empty for y in range(self.squareSize_ * 3)] for x in range(self.squareSize_ * 3)]
         self.neightbors_ = []
 
+        if (self.isInDungeon()):
+            areaToPrint = dungeons[self.dungeonId].getMap()
+            objectLayer = dungeons[self.dungeonId].getObjectLayer()
 
-        for thirdHeight in range(-1, 2):
+        if (not self.isInDungeon()):
+            for thirdHeight in range(-1, 2):
 
-            zero = ""
-            if ((self.worldX_, self.worldY_ + thirdHeight) in cache):
-                zero = cache[(self.worldX_, self.worldY_ + thirdHeight)]
-            else:
-                zeroSquare = MapSquare(self.worldX_, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-                zero = zeroSquare.getSquare()
-                cache[(self.worldX_, self.worldY_ + thirdHeight)] = zero
+                zero = ""
+                if ((self.worldX_, self.worldY_ + thirdHeight) in cache):
+                    zero = cache[(self.worldX_, self.worldY_ + thirdHeight)]
+                else:
+                    zeroSquare = MapSquare(self.worldX_, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
+                    zero = zeroSquare.getSquare()
+                    cache[(self.worldX_, self.worldY_ + thirdHeight)] = zero
 
-            right = ""
-            if ((self.worldX_ + 1, self.worldY_ + thirdHeight) in cache):
-                right = cache[(self.worldX_ + 1, self.worldY_ + thirdHeight)]
-            else:
-                rightSquare = MapSquare(self.worldX_ + 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-                right = rightSquare.getSquare()
-                cache[(self.worldX_ + 1, self.worldY_ + thirdHeight)] = right
+                right = ""
+                if ((self.worldX_ + 1, self.worldY_ + thirdHeight) in cache):
+                    right = cache[(self.worldX_ + 1, self.worldY_ + thirdHeight)]
+                else:
+                    rightSquare = MapSquare(self.worldX_ + 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
+                    right = rightSquare.getSquare()
+                    cache[(self.worldX_ + 1, self.worldY_ + thirdHeight)] = right
 
-            left = ""
-            if ((self.worldX_ - 1, self.worldY_ + thirdHeight) in cache):
-                left = cache[(self.worldX_ - 1, self.worldY_ + thirdHeight)]
-            else:
-                leftSquare = MapSquare(self.worldX_ - 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
-                left = leftSquare.getSquare()
-                cache[(self.worldX_ - 1, self.worldY_ + thirdHeight)] = left
+                left = ""
+                if ((self.worldX_ - 1, self.worldY_ + thirdHeight) in cache):
+                    left = cache[(self.worldX_ - 1, self.worldY_ + thirdHeight)]
+                else:
+                    leftSquare = MapSquare(self.worldX_ - 1, self.worldY_ + thirdHeight, self.squareSize_, self.squareSize_, self.seed_)
+                    left = leftSquare.getSquare()
+                    cache[(self.worldX_ - 1, self.worldY_ + thirdHeight)] = left
 
-            for y in range(self.squareSize_):
-                for x in range(self.squareSize_):
-                    areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x] = left[y][x]
-                    #print(left[y][x], end="")
-                for x in range(self.squareSize_):
-                    if (x == self.x_ and y == self.y_ and thirdHeight == 0):
-                        areaToPrint[(thirdHeight+1)  * self.squareSize_ + y][x + self.squareSize_] = zero[y][x]#"@"
-                    else:
-                        areaToPrint[(thirdHeight+1)  * self.squareSize_ + y][x + self.squareSize_] = zero[y][x]
-                for x in range(self.squareSize_):
-                    areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x + self.squareSize_ * 2] = right[y][x]
-
-
-
-        #trees
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in trees):
-                    for tree in trees[(self.worldX_ + x, self.worldY_ + y)]:
-                        if (tree.alive()):
-                            objectLayer[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
-
-        #shops
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in shops):
-                    for shop in shops[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + shop.getY()][x * self.squareSize_ + self.squareSize_ + shop.getX()] = shop.getCharacter()
-
-        #banks
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in banks):
-                    for bank in banks[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + bank.getY()][x * self.squareSize_ + self.squareSize_ + bank.getX()] = bank.getCharacter()
-
-        #hospitals
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in hospitals):
-                    for hosp in hospitals[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + hosp.getY()][x * self.squareSize_ + self.squareSize_ + hosp.getX()] = hosp.getCharacter()
-        
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in dungeonEntrances):
-                    for dE in dungeonEntrances[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + dE.getY()][x * self.squareSize_ + self.squareSize_ + dE.getX()] = dE.getCharacter()
-
-        #harbors
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in harbors):
-                    for harbor in harbors[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + harbor.getY()][x * self.squareSize_ + self.squareSize_ + harbor.getX()] = harbor.getCharacter()
-
-        #npcs
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in npcs):
-                    for npc in npcs[(self.worldX_ + x, self.worldY_ + y)]:
-                        objectLayer[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
+                for y in range(self.squareSize_):
+                    for x in range(self.squareSize_):
+                        areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x] = left[y][x]
+                        #print(left[y][x], end="")
+                    for x in range(self.squareSize_):
+                        if (x == self.x_ and y == self.y_ and thirdHeight == 0):
+                            areaToPrint[(thirdHeight+1)  * self.squareSize_ + y][x + self.squareSize_] = zero[y][x]#"@"
+                        else:
+                            areaToPrint[(thirdHeight+1)  * self.squareSize_ + y][x + self.squareSize_] = zero[y][x]
+                    for x in range(self.squareSize_):
+                        areaToPrint[(thirdHeight+1) * self.squareSize_ + y][x + self.squareSize_ * 2] = right[y][x]
 
 
-        #monsters
-        for y in range(-1, 2):
-            for x in range(-1, 2):
-                if ((self.worldX_ + x, self.worldY_ + y) in monsters):
-                    for monster in monsters[(self.worldX_ + x, self.worldY_ + y)]:
-                        if (monster.alive()):
-                            objectLayer[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
+
+            #trees
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in trees):
+                        for tree in trees[(self.worldX_ + x, self.worldY_ + y)]:
+                            if (tree.alive()):
+                                objectLayer[y * self.squareSize_ + self.squareSize_ + tree.getY()][x * self.squareSize_ + self.squareSize_ + tree.getX()] = tree.getCharacter()
+
+            #shops
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in shops):
+                        for shop in shops[(self.worldX_ + x, self.worldY_ + y)]:
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + shop.getY()][x * self.squareSize_ + self.squareSize_ + shop.getX()] = shop.getCharacter()
+
+            #banks
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in banks):
+                        for bank in banks[(self.worldX_ + x, self.worldY_ + y)]:
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + bank.getY()][x * self.squareSize_ + self.squareSize_ + bank.getX()] = bank.getCharacter()
+
+            #hospitals
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in hospitals):
+                        for hosp in hospitals[(self.worldX_ + x, self.worldY_ + y)]:
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + hosp.getY()][x * self.squareSize_ + self.squareSize_ + hosp.getX()] = hosp.getCharacter()
+            
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in dungeonEntrances):
+                        for dE in dungeonEntrances[(self.worldX_ + x, self.worldY_ + y)]:
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + dE.getY()][x * self.squareSize_ + self.squareSize_ + dE.getX()] = dE.getCharacter()
+
+            #harbors
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in harbors):
+                        for harbor in harbors[(self.worldX_ + x, self.worldY_ + y)]:
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + harbor.getY()][x * self.squareSize_ + self.squareSize_ + harbor.getX()] = harbor.getCharacter()
+
+            #npcs
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in npcs):
+                        for npc in npcs[(self.worldX_ + x, self.worldY_ + y)]:
+                            objectLayer[y * self.squareSize_ + self.squareSize_ + npc.getY()][x * self.squareSize_ + self.squareSize_ + npc.getX()] = npc.getCharacter()
 
 
-        #draw other players
-        for value in allPlayers.values():
-            worldx = value.getWorldX()
-            worldy = value.getWorldY()
-            x = value.getX()
-            y = value.getY()
-
-            if (value.getName == self.name_):
-                continue
-            if (worldx == self.worldX_ or worldx == self.worldX_+1 or worldx == self.worldX_ -1):
-                if (worldy == self.worldY_ or worldy == self.worldY_+1 or worldy == self.worldY_ -1):
-                    if (value.getName() != self.name_):
-                        xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
-                        yloc = worldy - self.worldY_ + 1
-                        objectLayer[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.others
-                        self.neightbors_.append(value.getName())
+            #monsters
+            for y in range(-1, 2):
+                for x in range(-1, 2):
+                    if ((self.worldX_ + x, self.worldY_ + y) in monsters):
+                        for monster in monsters[(self.worldX_ + x, self.worldY_ + y)]:
+                            if (monster.alive()):
+                                objectLayer[y * self.squareSize_ + self.squareSize_ + monster.getY()][x * self.squareSize_ + self.squareSize_ + monster.getX()] = monster.getCharacter()
 
 
-        #draw the player itself
-        worldx = self.worldX_
-        worldy = self.worldY_
-        x = self.x_
-        y = self.y_
-        xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
-        yloc = self.worldY_ - worldy + 1
-        objectLayer[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.character
+            #draw other players
+            for value in allPlayers.values():
+                worldx = value.getWorldX()
+                worldy = value.getWorldY()
+                x = value.getX()
+                y = value.getY()
+
+                if (value.getName == self.name_ or value.isInDungeon()):
+                    continue
+                if (worldx == self.worldX_ or worldx == self.worldX_+1 or worldx == self.worldX_ -1):
+                    if (worldy == self.worldY_ or worldy == self.worldY_+1 or worldy == self.worldY_ -1):
+                        if (value.getName() != self.name_):
+                            xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
+                            yloc = worldy - self.worldY_ + 1
+                            objectLayer[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.others
+                            self.neightbors_.append(value.getName())
+
+
+            #draw the player itself
+            worldx = self.worldX_
+            worldy = self.worldY_
+            x = self.x_
+            y = self.y_
+            xloc = worldx - self.worldX_ + 1 #self.worldX_ - worldx + 1
+            yloc = self.worldY_ - worldy + 1
+            objectLayer[yloc*self.squareSize_ + y][xloc*self.squareSize_ + x] = self.character
 
         return areaToPrint, objectLayer

@@ -9,6 +9,7 @@ from engine.inventory import *
 from engine.player import *
 from engine.pseudo import *
 from engine.trade import *
+from engine.dungeonGenerator import *
 
 import datetime
 import random
@@ -69,6 +70,15 @@ class Game:
         self.monsters = {}
 
         self.trades = Trades()
+
+
+        self.dungeons = {} # use as dungeonid: ({dungeontiles}, {dungeonplayers})
+        # if dungeonplayers is empty, remove dungeon
+        # player needs a inDungeon property, then handle movex and movey differently
+        # actions and attack need an inDungeon check for the player
+        # plyaers needs dungeonX and dungeonY properties, dungeonWorldX and dungeonWorldY as well
+
+
 
     def getSize(self):
         return 3 * self.squareSize_
@@ -685,7 +695,7 @@ class Game:
 
     def printGameState(self, playerName):  # again bad name, just returns stuff
         # get a gameview of the specified player
-        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.hospitals, self.harbors, self.dungeonEntrances)
+        return self.allPlayers_[playerName].printLocation(self.allPlayers_, self.Npcs, self.monsters, self.squareCache, self.trees, self.shops, self.banks, self.hospitals, self.harbors, self.dungeonEntrances, self.dungeons)
 
     def getActionStatus(self, playerName):
         # get the state of info that needs to be shown to the player
@@ -771,104 +781,117 @@ class Game:
         x = player.getWorldX()
         y = player.getWorldY()
 
-        # handle harbors
-        if ((x, y) in self.harbors):
-            for harbor in self.harbors[(x, y)]:
-                if (harbor.getX() == player.getX() and harbor.getY() == player.getY()):
-                    player.act()
-                    player.useHarbor()
-                    player.addMessage("Game", "You use the harbor.")
-                    return
+        if (not player.isInDungeon()):
 
-        # handle hospitals
-        if ((x, y) in self.hospitals):
-            for hospital in self.hospitals[(x, y)]:
-                if (hospital.getX() == player.getX() and hospital.getY() == player.getY()):
-                    if (not player.isInBuilding()):
+
+            # handle harbors
+            if ((x, y) in self.harbors):
+                for harbor in self.harbors[(x, y)]:
+                    if (harbor.getX() == player.getX() and harbor.getY() == player.getY()):
                         player.act()
-                        player.goToBuilding()
-                        player.resetHp()
-                        player.addMessage("Game", "You heal yourself to " + str(player.getHp()))
-                    return
+                        player.useHarbor()
+                        player.addMessage("Game", "You use the harbor.")
+                        return
 
-        # handle banks
-        if ((x, y) in self.banks):
-            for bank in self.banks[(x, y)]:
-                if (bank.getX() == player.getX() and bank.getY() == player.getY()):
-                    if (not player.isInBuilding()):
+            # handle hospitals
+            if ((x, y) in self.hospitals):
+                for hospital in self.hospitals[(x, y)]:
+                    if (hospital.getX() == player.getX() and hospital.getY() == player.getY()):
+                        if (not player.isInBuilding()):
+                            player.act()
+                            player.goToBuilding()
+                            player.resetHp()
+                            player.addMessage("Game", "You heal yourself to " + str(player.getHp()))
+                        return
+
+            # handle banks
+            if ((x, y) in self.banks):
+                for bank in self.banks[(x, y)]:
+                    if (bank.getX() == player.getX() and bank.getY() == player.getY()):
+                        if (not player.isInBuilding()):
+                            player.act()
+                            player.goToBank()
+                            player.goToBuilding()
+
+                            player.addMessage("Game", "You enter a bank.")
+                        return
+
+            # handle shops
+            if ((x, y) in self.shops):
+                for shop in self.shops[(x, y)]:
+                    if (shop.getX() == player.getX() and shop.getY() == player.getY()):
+                        if (not player.isInBuilding()):
+                            player.act()
+                            player.goToShop()
+                            player.goToBuilding()
+
+                            player.addMessage("Game", "You visit a " + shop.getType() + ".")
+                        return
+            
+            # handle dungeon entrances
+            if ((x, y) in self.dungeonEntrances):
+                for dE in self.dungeonEntrances[(x, y)]:
+                    if (dE.getX() == player.getX() and dE.getY() == player.getY()):
+                        if (not player.isInBuilding()):
+                            player.act()
+                            player.goToDungeon(dE.getId())
+                            #generate dungeon here, move player to it, with dungeoncode
+
+                            if (dE.getId() not in self.dungeons.keys()):
+                                #generate map here
+                                #3x squaresize, with exit at player spawn. Treasure at end.
+                                #insert into self.dungeons[map, players, objects]
+                                if (dE.getId() not in self.dungeons):
+                                    self.dungeons[dE.getId()] = dungeon("empty",3*self.squareSize_)
+                                self.dungeons[dE.getId()].addPlayer(player)
+                                
+
+                            player.addMessage("Game", "You enter a dungeon.")
+                        return
+
+            #handle npcs
+            if ((x, y) in self.Npcs):
+                for npc in self.Npcs[(x, y)]:
+                    if (npc.getX() == player.getX() and npc.getY() == player.getY()):
                         player.act()
-                        player.goToBank()
-                        player.goToBuilding()
 
-                        player.addMessage("Game", "You enter a bank.")
-                    return
-
-        # handle shops
-        if ((x, y) in self.shops):
-            for shop in self.shops[(x, y)]:
-                if (shop.getX() == player.getX() and shop.getY() == player.getY()):
-                    if (not player.isInBuilding()):
-                        player.act()
-                        player.goToShop()
-                        player.goToBuilding()
-
-                        player.addMessage("Game", "You visit a " + shop.getType() + ".")
-                    return
-        
-        # handle dungeon entrances
-        if ((x, y) in self.dungeonEntrances):
-            for dE in self.dungeonEntrances[(x, y)]:
-                if (dE.getX() == player.getX() and dE.getY() == player.getY()):
-                    if (not player.isInBuilding()):
-                        player.act()
-                        player.goToBuilding()
-                        #remove isinbuilding, add underworld.
-                        player.addMessage("Game", "You enter a dungeon.")
-                    return
-
-        #handle npcs
-        if ((x, y) in self.Npcs):
-            for npc in self.Npcs[(x, y)]:
-                if (npc.getX() == player.getX() and npc.getY() == player.getY()):
-                    player.act()
-
-                    player.addMessage(npc.getType(), npc.getLine())
-                    return
-
-
-        # handle trees
-        if ((x, y) in self.trees):
-            for tree in self.trees[(x, y)]:
-                if (tree.getX() == player.getX() and tree.getY() == player.getY()):
-                    if (tree.alive()):
-                        player.act()
-                        tree.hit()
-                        if (not tree.alive()):
-                            player.addMessage(
-                                "Game", "You " + tree.getDeathNote() + ".")
-                            for i in range(tree.dropAmount()):
-                                if (player.inventory.isFull()):
-                                    player.addMessage("Game", "Your inventory is full.")
-                                    break
-                                player.addItemToInv(tree.dropType())
-
-                            #self.trees[(x, y)].remove(tree)
-                        else:
-                            player.addMessage("Game", "You " + tree.getHitNote() + ".")
+                        player.addMessage(npc.getType(), npc.getLine())
                         return
 
 
-        #handle players challenging others to trade
+            # handle trees
+            if ((x, y) in self.trees):
+                for tree in self.trees[(x, y)]:
+                    if (tree.getX() == player.getX() and tree.getY() == player.getY()):
+                        if (tree.alive()):
+                            player.act()
+                            tree.hit()
+                            if (not tree.alive()):
+                                player.addMessage(
+                                    "Game", "You " + tree.getDeathNote() + ".")
+                                for i in range(tree.dropAmount()):
+                                    if (player.inventory.isFull()):
+                                        player.addMessage("Game", "Your inventory is full.")
+                                        break
+                                    player.addItemToInv(tree.dropType())
 
-        if (not player.isInTrade() and player.getTradeOffer() == "" and player.getTradeOffered() == ""):
-            player.resetTradeCandidates()
-            for opp in player.getNeighbors():
-                opponent = self.allPlayers_[opp]
-                if (not opponent.isInTrade() and opponent.getTradeOffer() == "" and opponent.getTradeOffered() == ""):
-                    if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
-                        if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
-                            self.trades.removeTrade(playerName, opp)
-                            player.addTradeCandidate(opp)
+                                #self.trees[(x, y)].remove(tree)
+                            else:
+                                player.addMessage("Game", "You " + tree.getHitNote() + ".")
+                            return
+
+
+            #handle players challenging others to trade
+
+            if (not player.isInTrade() and player.getTradeOffer() == "" and player.getTradeOffered() == ""):
+                player.resetTradeCandidates()
+                for opp in player.getNeighbors():
+                    opponent = self.allPlayers_[opp]
+                    if (not opponent.isInTrade() and opponent.getTradeOffer() == "" and opponent.getTradeOffered() == ""):
+                        if (opponent.getWorldX() == player.getWorldX() and opponent.getWorldY() == player.getWorldY()):
+                            if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
+                                self.trades.removeTrade(playerName, opp)
+                                player.addTradeCandidate(opp)
 
 
     def attack(self, playerName):
@@ -1102,7 +1125,6 @@ class Game:
                     tradeState = self.trades.getTradeState(playerName, opponent)
                     #figure out if enough room in both inventories
 
-                    print(tradeState)
                     
                     if (tradeState[2] != {}):
                         if (player.inventory.getInventorySize() + sum(tradeState[2].values()) > player.inventory.getMaxSize()):
