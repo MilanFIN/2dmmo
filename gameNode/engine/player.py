@@ -193,6 +193,7 @@ class Player:
 
         self.inDungeon = False
         self.dungeonId = ""
+        self.dungeon = ""
         self.dX = 0
         self.dY = 0
 
@@ -420,21 +421,29 @@ class Player:
             return False
         #check if player can move to the position
 
-    def moveLeft(self, square, hx = -1, hy = -1):
+    def moveLeft(self, square=[""], hx = -1, hy = 0):
+
 
         if (self.moved_ == True or self.inFight != 0):
             return
 
-        newX = self.x_ -1
-        if (newX < 0):
-            newX = self.squareSize_ -1
-            self.worldX_ -= 1
-            if (self.worldX_ <= -self.worldSize +1):
-                self.worldX_ = self.worldSize -1
+        if (not self.inDungeon):
+            newX = self.x_ -1
+            if (newX < 0):
+                newX = self.squareSize_ -1
+                self.worldX_ -= 1
+                if (self.worldX_ <= -self.worldSize +1):
+                    self.worldX_ = self.worldSize -1
 
-        elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
-            return
-        self.x_ = newX
+            elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
+                return
+            self.x_ = newX
+        
+        else:
+            if (self.dungeon.canMove(self.dX-1, self.dY)):
+                print("moving in dungeon")
+
+
         self.moved_ = True
         self.inShop = False
         self.inBank = False
@@ -442,8 +451,9 @@ class Player:
         self.inBuilding = False
         self.inTrade = False
         self.resetTradeCandidates()
+        
 
-    def moveRight(self, square, hx = -1, hy = -1):
+    def moveRight(self, square, hx = 1, hy = 0):
 
         if (self.moved_ == True or self.inFight != 0):
             return
@@ -467,7 +477,7 @@ class Player:
         self.resetTradeCandidates()
 
 
-    def moveDown(self, square, hx = -1, hy = -1):
+    def moveDown(self, square, hx = 0, hy = 1):
         if (self.moved_ == True or self.inFight != 0):
             return
         newY = self.y_ + 1
@@ -490,7 +500,7 @@ class Player:
         self.resetTradeCandidates()
 
 
-    def moveUp(self, square, hx = -1, hy = -1):
+    def moveUp(self, square, hx = 0, hy = -1):
         if (self.moved_ == True or self.inFight != 0):
             return
 
@@ -515,9 +525,10 @@ class Player:
 
 
 
-    def goToDungeon(self, id):
+    def goToDungeon(self, id, dungeon):
         self.inDungeon = True
         self.dungeonId = id
+        self.dungeon = dungeon
     def leaveDungeon(self):
         self.inDungeon = False
         self.dungeonId = ""
@@ -541,7 +552,7 @@ class Player:
 
         if (self.isInDungeon()):
             areaToPrint = dungeons[self.dungeonId].getMap()
-            objectLayer = dungeons[self.dungeonId].getObjectLayer()
+            objectLayer = dungeons[self.dungeonId].getObjectLayer(self)
 
         if (not self.isInDungeon()):
             for thirdHeight in range(-1, 2):

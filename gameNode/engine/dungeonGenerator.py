@@ -16,13 +16,19 @@ class dungeon:
 		return self.map
 	def addPlayer(self, player):
 		self.players.append(player)
+	def canMove(self, x, y):
+		#just a bounding box at first, figure out blocking tiletypes etc later
+		if (x > 0 and x < self.size -1):
+			if (y > 0 and y < self.size -1):
+				return True
+
 	def getObjectLayer(self, player):
-		#should return objects here, not relevant yet
-		result = [[","] * size] * self.size
+		result = [["," for y in range(self.size)] for x in range(self.size)]
 
 		for unit in self.players:
 			pass
-			# check players location, if unit == player, use @, otherwise Y
-			# MOVEMENT CHECK GOES IN THIS CLASS
+			result[unit.dX][unit.dY] = "Y"
+		result[player.dX][player.dY] = "@"
+
 		return result
 	

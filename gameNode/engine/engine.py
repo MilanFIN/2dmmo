@@ -19,22 +19,7 @@ import json
 """
 TODO:
 
-
-
-
-
-
-
-
-### secondary todo:
-
-
-#faction areas?, rnd, generate enemy levels based on faction area, 1 to nullsec, pvp?
-
-#pringtgamestate shared for multiple worker threads as it's the slowest function to run by far
-
-
-
+player.py @ 424 finish moving left
 """
 
 
@@ -163,15 +148,19 @@ class Game:
         player = self.allPlayers_[playerName]
         hx = -1
         hy = -1
-        if ((player.getWorldX(), player.getWorldY()) in self.harbors):
-            hx = self.harbors[(player.getWorldX(),
-                               player.getWorldY())][0].getX()
-            hy = self.harbors[(player.getWorldX(),
-                               player.getWorldY())][0].getY()
+        if (not player.isInDungeon()):
+            if ((player.getWorldX(), player.getWorldY()) in self.harbors):
+                hx = self.harbors[(player.getWorldX(),
+                                player.getWorldY())][0].getX()
+                hy = self.harbors[(player.getWorldX(),
+                                player.getWorldY())][0].getY()
 
-        if ((player.getWorldX(), player.getWorldY()) in self.squareCache):
-            player.moveLeft(
-                self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+            if ((player.getWorldX(), player.getWorldY()) in self.squareCache):
+                player.moveLeft(
+                    self.squareCache[(player.getWorldX(), player.getWorldY())], hx, hy)
+        else:
+            player.moveLeft()
+
 
     def movePlayerRight(self, playerName):
         player = self.allPlayers_[playerName]
@@ -834,7 +823,6 @@ class Game:
                     if (dE.getX() == player.getX() and dE.getY() == player.getY()):
                         if (not player.isInBuilding()):
                             player.act()
-                            player.goToDungeon(dE.getId())
                             #generate dungeon here, move player to it, with dungeoncode
 
                             if (dE.getId() not in self.dungeons.keys()):
@@ -845,6 +833,7 @@ class Game:
                                     self.dungeons[dE.getId()] = dungeon("empty",3*self.squareSize_)
                                 self.dungeons[dE.getId()].addPlayer(player)
                                 
+                            player.goToDungeon(dE.getId(),self.dungeons[dE.getId()])
 
                             player.addMessage("Game", "You enter a dungeon.")
                         return
