@@ -12,7 +12,8 @@ class dungeon:
 
 		self.config.read("./engine/dungeons/"+"testdungeon"+".cfg")
 
-
+		self.inX = int(self.config["map"]["inx"])
+		self.inY = int(self.config["map"]["iny"])
 
 
 		self.type = type
@@ -41,6 +42,9 @@ class dungeon:
 		return self.map
 	def addPlayer(self, player):
 		self.players.append(player)
+
+		player.dX = self.inX
+		player.dY = self.inY
 	def canMove(self, x, y):
 		#just a bounding box at first, figure out blocking tiletypes etc later
 		if (x >= 0 and x <= self.size -1):
