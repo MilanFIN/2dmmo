@@ -830,7 +830,7 @@ class Game:
                                 #3x squaresize, with exit at player spawn. Treasure at end.
                                 #insert into self.dungeons[map, players, objects]
                                 if (dE.getId() not in self.dungeons):
-                                    self.dungeons[dE.getId()] = dungeon("empty",3*self.squareSize_)
+                                    self.dungeons[dE.getId()] = dungeon(dE.getType(),3*self.squareSize_)
                                 self.dungeons[dE.getId()].addPlayer(player)
                                 
                             player.goToDungeon(dE.getId(),self.dungeons[dE.getId()])

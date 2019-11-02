@@ -23,6 +23,7 @@ class Resource(GameObject):
     def __init__(self, hp, x, y, worldx, worldy, seed):
 
         self.config = configparser.ConfigParser()
+        
         self.config.read("./engine/config.cfg")
 
         possibleTypes = json.loads(self.config["resources"]["types"])

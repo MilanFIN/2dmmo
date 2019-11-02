@@ -441,7 +441,7 @@ class Player:
         
         else:
             if (self.dungeon.canMove(self.dX-1, self.dY)):
-                print("moving in dungeon")
+                self.dX -= 1
 
 
         self.moved_ = True
@@ -458,16 +458,22 @@ class Player:
         if (self.moved_ == True or self.inFight != 0):
             return
 
-        newX = self.x_ +1
-        if (newX >= self.squareSize_):
-            newX = 0
-            self.worldX_ += 1
-            if (self.worldX_ >= self.worldSize -1):
-                self.worldX_ = -self.worldSize +1
 
-        elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
-            return
-        self.x_ = newX
+        if (not self.inDungeon):
+            newX = self.x_ +1
+            if (newX >= self.squareSize_):
+                newX = 0
+                self.worldX_ += 1
+                if (self.worldX_ >= self.worldSize -1):
+                    self.worldX_ = -self.worldSize +1
+
+            elif (self.canMove(square[self.y_][newX]) == False and not(newX == hx and self.y_ == hy)):
+                return
+            self.x_ = newX
+        else:
+            if (self.dungeon.canMove(self.dX+1, self.dY)):
+                self.dX += 1
+
         self.moved_ = True
         self.inShop = False
         self.inBank = False
@@ -480,17 +486,25 @@ class Player:
     def moveDown(self, square, hx = 0, hy = 1):
         if (self.moved_ == True or self.inFight != 0):
             return
-        newY = self.y_ + 1
-        if (newY >= self.squareSize_):
-            newY = 0
-            self.worldY_ += 1
 
-            if (self.worldY_ >= self.worldSize -1):
-                self.worldY_ = -self.worldSize +1
 
-        elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
-            return
-        self.y_ = newY
+        if (not self.inDungeon):
+            newY = self.y_ + 1
+            if (newY >= self.squareSize_):
+                newY = 0
+                self.worldY_ += 1
+
+                if (self.worldY_ >= self.worldSize -1):
+                    self.worldY_ = -self.worldSize +1
+
+            elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
+                return
+            self.y_ = newY
+        
+        else:
+            if (self.dungeon.canMove(self.dX, self.dY+1)):
+                self.dY += 1
+
         self.moved_ = True
         self.inShop = False
         self.inBank = False
@@ -504,17 +518,23 @@ class Player:
         if (self.moved_ == True or self.inFight != 0):
             return
 
-        newY = self.y_ - 1
-        if (newY < 0):
-            newY = self.squareSize_ -1
-            self.worldY_ -= 1
 
-            if (self.worldY_ <= -self.worldSize +1):
-                self.worldY_ = self.worldSize -1
+        if (not self.inDungeon):
+            newY = self.y_ - 1
+            if (newY < 0):
+                newY = self.squareSize_ -1
+                self.worldY_ -= 1
 
-        elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
-            return
-        self.y_ = newY
+                if (self.worldY_ <= -self.worldSize +1):
+                    self.worldY_ = self.worldSize -1
+
+            elif (self.canMove(square[newY][self.x_]) == False and not(self.x_ == hx and newY == hy)):
+                return
+            self.y_ = newY
+        else:
+            if (self.dungeon.canMove(self.dX, self.dY-1)):
+                self.dY -= 1
+
         self.moved_ = True
         self.inShop = False
         self.inBank = False
