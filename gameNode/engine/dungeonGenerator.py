@@ -17,12 +17,19 @@ class dungeon:
 
 		self.type = type
 		self.size = size
-		self.map = self.config["map"]["map"]
-		print(self.map)
+		map = self.config["map"]["map"]
+		map = map.replace('\n', '')
+		map = list(map)
 
 
 
-		self.map  = [["x"] * size] * size
+
+		self.map = [["." for y in range(self.size)] for x in range(self.size)]
+
+
+		for y in range(30):
+			for x in range(30):
+				self.map[y][x] = map[30*y+x]
 
 
 		self.players = []
