@@ -549,6 +549,8 @@ class Player:
         self.inDungeon = True
         self.dungeonId = id
         self.dungeon = dungeon
+        self.dX = 0
+        self.dY = 0
     def leaveDungeon(self):
         self.inDungeon = False
         self.dungeonId = ""

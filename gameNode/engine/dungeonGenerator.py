@@ -15,6 +15,15 @@ class dungeon:
 		self.inX = int(self.config["map"]["inx"])
 		self.inY = int(self.config["map"]["iny"])
 
+		self.outX = int(self.config["map"]["outx"])
+		self.outY = int(self.config["map"]["outy"])
+
+
+		self.ground = self.config["map"]["ground"]
+		self.wall = self.config["map"]["wall"]
+
+		self.entrance = self.config["map"]["entrance"]
+		self.exit = self.config["map"]["exit"]
 
 		self.type = type
 		self.size = size
@@ -45,16 +54,27 @@ class dungeon:
 
 		player.dX = self.inX
 		player.dY = self.inY
+	def removePlayer(self, player):
+		if player in self.players:
+			self.players.remove(player)
 	def canMove(self, x, y):
 		#just a bounding box at first, figure out blocking tiletypes etc later
 		if (x >= 0 and x <= self.size -1):
 			if (y >= 0 and y <= self.size -1):
-				return True
+				if (self.map[y][x] == self.ground):
+					return True
 		return False
 
 	def getObjectLayer(self, player):
 		result = [["," for y in range(self.size)] for x in range(self.size)]
 
+		#place entrance and exit (if above each other, exit is shown)
+
+		result[self.inY][self.inX] = self.entrance
+		result[self.outY][self.outX] = self.exit
+
+
+		#place players to objectlayer
 		for unit in self.players:
 			pass
 			result[unit.dY][unit.dX] = "Y"
@@ -62,3 +82,13 @@ class dungeon:
 
 		return result
 	
+
+	def doAction(self, player):
+		if (not player.canAct()):
+			return
+		else:
+			if (player.dX == self.outX and player.dY == self.outY):
+				#leave dungeon
+				player.leaveDungeon()
+				self.removePlayer(player)
+				return

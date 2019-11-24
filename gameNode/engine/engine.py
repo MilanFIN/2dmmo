@@ -825,18 +825,19 @@ class Game:
                             player.act()
                             #generate dungeon here, move player to it, with dungeoncode
 
-                            if (dE.getId() not in self.dungeons.keys()):
-                                #generate map here
-                                #3x squaresize, with exit at player spawn. Treasure at end.
-                                #insert into self.dungeons[map, players, objects]
-                                if (dE.getId() not in self.dungeons):
-                                    self.dungeons[dE.getId()] = dungeon(dE.getType(),3*self.squareSize_)
-                                self.dungeons[dE.getId()].addPlayer(player)
-                                
+                            #generate map here
+                            #3x squaresize, with exit at player spawn. Treasure at end.
+                            #insert into self.dungeons[map, players, objects]
+                            if (dE.getId() not in self.dungeons):
+                                self.dungeons[dE.getId()] = dungeon(dE.getType(),3*self.squareSize_)
                             player.goToDungeon(dE.getId(),self.dungeons[dE.getId()])
+
+                            self.dungeons[dE.getId()].addPlayer(player)
+                                
 
                             player.addMessage("Game", "You enter a dungeon.")
                         return
+        
 
             #handle npcs
             if ((x, y) in self.Npcs):
@@ -881,6 +882,9 @@ class Game:
                             if (opponent.getX() == player.getX() and opponent.getY() == player.getY()):
                                 self.trades.removeTrade(playerName, opp)
                                 player.addTradeCandidate(opp)
+
+        else: ##in dungeon
+            self.dungeons[player.getDungeonId()].doAction(player)
 
 
     def attack(self, playerName):
