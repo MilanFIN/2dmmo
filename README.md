@@ -13,12 +13,12 @@ The world is "round" and populated by islands with npc characters on them.
 - A wear system, including armor, ships and weapons
 - Adding additional items, resources, enemies, npcs is easy with the config file
 - Multiple servernode support and a centralized login server with database connection to save gamestate
+- food to recover health, harvesting and buying it
 
 
 
 ### these are under construction
-- different types of shops, each specializing in specific item types
-- food to recover health, harvesting and buying it
+- dungeons
 
 ### future ideas
 - different types of areas such as civilized and monster populated areas, restrict specific npc and monster types to these areas
