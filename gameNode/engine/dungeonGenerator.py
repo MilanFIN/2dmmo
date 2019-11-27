@@ -57,6 +57,7 @@ class dungeon:
 	def removePlayer(self, player):
 		if player in self.players:
 			self.players.remove(player)
+			player.leaveDungeon()
 	def canMove(self, x, y):
 		#just a bounding box at first, figure out blocking tiletypes etc later
 		if (x >= 0 and x <= self.size -1):
@@ -89,6 +90,5 @@ class dungeon:
 		else:
 			if (player.dX == self.outX and player.dY == self.outY):
 				#leave dungeon
-				player.leaveDungeon()
 				self.removePlayer(player)
 				return

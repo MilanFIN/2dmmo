@@ -124,6 +124,9 @@ class Game:
 
     def removePlayer(self, playerName):
         try:
+            player = self.allPlayers_[playerName]
+            if (player.isInDungeon()):
+                self.dungeons[player.getDungeonId()].removePlayer(player)
             del self.allPlayers_[playerName]
         except KeyError:
             pass
