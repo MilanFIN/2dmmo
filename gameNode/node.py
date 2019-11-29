@@ -35,12 +35,12 @@ clients = {}
 game = Game()
 
 
-masterAddress = "ws://localhost:3001/ws"
-#masterAddress = "wss://asdf.dy.fi:3001/ws"
+#masterAddress = "ws://localhost:3001/ws"
+masterAddress = "ws://asdf.dy.fi:3001/ws"
 passphrase = "testipassu1234"
 nodeName = "Finland 1"
-nodeAddress = "http://localhost:8888"
-#nodeAddress = "https://www.asdf.dy.fi:8888"
+#nodeAddress = "http://localhost:8888"
+nodeAddress = "http://www.asdf.dy.fi:8888"
 maxPlayers = 300
 logoutTimer = 60
 
