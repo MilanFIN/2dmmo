@@ -19,7 +19,7 @@ class dungeon:
 		self.outY = int(self.config["map"]["outy"])
 
 
-		self.ground = self.config["map"]["ground"]
+		self.ground = json.loads(self.config["map"]["ground"])  
 		self.wall = self.config["map"]["wall"]
 
 		self.entrance = self.config["map"]["entrance"]
@@ -62,7 +62,7 @@ class dungeon:
 		#just a bounding box at first, figure out blocking tiletypes etc later
 		if (x >= 0 and x <= self.size -1):
 			if (y >= 0 and y <= self.size -1):
-				if (self.map[y][x] == self.ground):
+				if (self.map[y][x] in self.ground):
 					return True
 		return False
 
