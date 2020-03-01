@@ -18,12 +18,10 @@ The world is "round" and populated by islands with npc characters on them.
 
 
 ### these are under construction
-- dungeons
+- dungeons, they kinda work, but they don't contain anything functional
 
 ### future ideas
-- different types of areas such as civilized and monster populated areas, restrict specific npc and monster types to these areas
-- map that shows positions of islands and the types of the areas, possibly represented by assigning 1 pixel to 1 tile
-- islands that are larger than one gametile?
+- i gave up and restarted on something bigger and better
 
 
 ### Dependencies (python3 modules)
