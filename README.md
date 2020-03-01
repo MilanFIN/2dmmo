@@ -1,4 +1,4 @@
-# in-browser-ascii-mmo
+# 2D mmo/mud
 
 ### in short
 A python based in browser mmo with ascii based graphics.
