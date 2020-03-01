@@ -24,7 +24,7 @@ playersOnline = {}
 nodes = {} #(name, playerCount, current), current is the time it was updated
 nodeDropTimeout = 60000
 ClientDropTimeout = 1250000 #25 minutes, getting updates every 10
-masterPass = "testipassu1234"
+masterPass = "removed from git"
 
 
 def dropLostClients():
