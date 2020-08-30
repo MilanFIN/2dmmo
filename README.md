@@ -1,7 +1,7 @@
 # 2D mmo/mud
 
 ### in short
-A python based in browser mmo with ascii based graphics.
+A python based in browser mmo with 2d graphix.
 The world is "round" and populated by islands with npc characters on them.
 
 ### these features already work
